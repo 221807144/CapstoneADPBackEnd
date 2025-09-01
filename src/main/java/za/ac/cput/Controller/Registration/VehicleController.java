@@ -68,11 +68,11 @@ public class VehicleController {
         return vehicleService.getExpiredByApplicant(applicantId, today);
     }
 
-    @GetMapping("/myVehicles/{applicantId}")
-    public List<Vehicle> getMyVehicles(@PathVariable int applicantId) {
-        System.out.println("Fetching vehicles for applicant: " + applicantId);
-        return vehicleService.getVehiclesByApplicant(applicantId);
-    }
+//    @GetMapping("/myVehicles/{applicantId}")
+//    public List<Vehicle> getMyVehicles(@PathVariable int applicantId) {
+//        System.out.println("Fetching vehicles for applicant: " + applicantId);
+//        return vehicleService.getVehiclesByApplicant(applicantId);
+//    }
 
     // VehicleController.java
     @GetMapping("/applicant/{applicantId}")
@@ -80,6 +80,12 @@ public class VehicleController {
         List<Vehicle> vehicles = vehicleService.getVehiclesByApplicant(applicantId);
         return ResponseEntity.ok(vehicles);
     }
+// Add a dedicated endpoint to fetch all expired vehicles:
+    @GetMapping("/expired") // no path variable
+    public List<Vehicle> getAllExpiredVehicles() {
+        return vehicleService.getExpiredVehicles();
+    }
+
 
 
 }

@@ -16,9 +16,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Integer> {
 
     @Query("SELECT v FROM Vehicle v WHERE v.applicant.userId = :applicantId AND v.vehicleDisc.expiryDate <= :today")
     List<Vehicle> findExpiredByApplicant(@Param("applicantId") int applicantId, @Param("today") LocalDate today);
-
-
-
     List<Vehicle> findByApplicant_UserId(int userId);
 
 }
