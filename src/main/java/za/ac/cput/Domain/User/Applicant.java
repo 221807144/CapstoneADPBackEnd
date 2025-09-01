@@ -1,6 +1,6 @@
 package za.ac.cput.Domain.User;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -15,18 +15,32 @@ import java.util.List;
 @DiscriminatorValue("APPLICANT")
 public class Applicant extends User {
 
-    @OneToOne(cascade = CascadeType.ALL)
+    private String idNumber;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate birthDate;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "contact_id")
+    private Contact contact;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "address_id")
+    private Address address;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "license_id")
     private License license;
 
-    @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference
+    @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Vehicle> vehicle;
-    @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<TestAppointment> testAppointment;
+
+    // 👇 Added for AdminService compatibility
     @Enumerated(EnumType.STRING)
-    protected Status status;
-//    @JsonManagedReference
+    private Status status;
 
     private String reason;
 
@@ -36,7 +50,7 @@ public class Applicant extends User {
         REJECTED
     }
 
-    public Applicant() { }
+    public Applicant() {}
 
     private Applicant(Builder builder) {
         this.userId = builder.userId;
@@ -51,47 +65,66 @@ public class Applicant extends User {
         this.password = builder.password;
         this.role = builder.role;
         this.vehicle = builder.vehicle;
-        this.status = builder.status;
         this.testAppointment = builder.testAppointment;
+        this.status = builder.status;
         this.reason = builder.reason;
     }
 
-    // --- Getters ---
-    public License getLicense() { return license; }
-    public List<Vehicle> getVehicle() { return vehicle; }
-    public Status getStatus() { return status; }
-    public String getReason() { return reason; }
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public License getLicense() {
+        return license;
+    }
+
+    public List<Vehicle> getVehicle() {
+        return vehicle;
+    }
 
     public List<TestAppointment> getTestAppointment() {
         return testAppointment;
     }
 
-    // --- Setters (needed for AdminService updates) ---
-    public void setStatus(Status status) { this.status = status; }
-    public void setReason(String reason) { this.reason = reason; }
+    // 👇 Added for AdminService
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 
     @Override
     public String toString() {
         return "Applicant{" +
-                "license=" + license +
+                "address=" + address +
+                ", idNumber='" + idNumber + '\'' +
+                ", birthDate=" + birthDate +
+                ", license=" + license +
                 ", vehicle=" + vehicle +
                 ", testAppointment=" + testAppointment +
                 ", status=" + status +
                 ", reason='" + reason + '\'' +
-                ", userId=" + userId +
-                ", idNumber='" + idNumber + '\'' +
-                ", birthDate=" + birthDate +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", contact=" + contact +
-                ", password='" + password + '\'' +
-                ", address=" + address +
-                ", bookings=" + bookings +
-                ", role=" + role +
                 '}';
     }
 
-    // --- Builder ---
     public static class Builder {
         private int userId;
         private String idNumber;
@@ -105,25 +138,85 @@ public class Applicant extends User {
         private Bookings bookings;
         private Role role;
         private List<Vehicle> vehicle;
-        private Status status;
         private List<TestAppointment> testAppointment;
+        private Status status;
         private String reason;
 
-        public Builder setUserId(int userId) { this.userId = userId; return this; }
-        public Builder setIdNumber(String idNumber) { this.idNumber = idNumber; return this; }
-        public Builder setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; return this; }
-        public Builder setAddress(Address address) { this.address = address; return this; }
-        public Builder setLicense(License license) { this.license = license; return this; }
-        public Builder setFirstName(String firstName) { this.firstName = firstName; return this; }
-        public Builder setLastName(String lastName) { this.lastName = lastName; return this; }
-        public Builder setContact(Contact contact) { this.contact = contact; return this; }
-        public Builder setPassword(String password) { this.password = password; return this; }
-        public Builder setBookings(Bookings bookings) { this.bookings = bookings; return this; }
-        public Builder setRole(Role role) { this.role = role; return this; }
-        public Builder setVehicle(List<Vehicle> vehicle) { this.vehicle = vehicle; return this; }
-        public Builder setStatus(Status status) { this.status = status; return this; }
-        public Builder setTestAppointment(List<TestAppointment> testAppointment) { this.testAppointment = testAppointment; return this; }
-        public Builder setReason(String reason) { this.reason = reason; return this; }
+        public Builder setUserId(int userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder setIdNumber(String idNumber) {
+            this.idNumber = idNumber;
+            return this;
+        }
+
+        public Builder setBirthDate(LocalDate birthDate) {
+            this.birthDate = birthDate;
+            return this;
+        }
+
+        public Builder setAddress(Address address) {
+            this.address = address;
+            return this;
+        }
+
+        public Builder setLicense(License license) {
+            this.license = license;
+            return this;
+        }
+
+        public Builder setFirstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public Builder setLastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public Builder setContact(Contact contact) {
+            this.contact = contact;
+            return this;
+        }
+
+        public Builder setPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder setRole(Role role) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder setBookings(Bookings bookings) {
+            this.bookings = bookings;
+            return this;
+        }
+
+        public Builder setVehicle(List<Vehicle> vehicle) {
+            this.vehicle = vehicle;
+            return this;
+        }
+
+        public Builder setTestAppointment(List<TestAppointment> testAppointment) {
+            this.testAppointment = testAppointment;
+            return this;
+        }
+
+        // 👇 Added for AdminService
+        public Builder setStatus(Status status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder setReason(String reason) {
+            this.reason = reason;
+            return this;
+        }
 
         public Builder copy(Applicant applicant) {
             this.userId = applicant.userId;
@@ -138,12 +231,14 @@ public class Applicant extends User {
             this.password = applicant.password;
             this.role = applicant.role;
             this.vehicle = applicant.vehicle;
-            this.status = applicant.status;
             this.testAppointment = applicant.testAppointment;
+            this.status = applicant.status;
             this.reason = applicant.reason;
             return this;
         }
 
-        public Applicant build() { return new Applicant(this); }
+        public Applicant build() {
+            return new Applicant(this);
+        }
     }
 }
