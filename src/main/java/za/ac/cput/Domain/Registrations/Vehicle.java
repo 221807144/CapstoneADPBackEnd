@@ -3,6 +3,7 @@ package za.ac.cput.Domain.Registrations;
      Author: Sibahle shange (222529571)*/
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.VehicleDisc;
@@ -40,7 +41,8 @@ public class Vehicle {
     private Payment payment;
     @ManyToOne
     @JoinColumn(name = "applicant_id", nullable = false)
-    @JsonBackReference  // prevent infinite recursion
+
+    @JsonIgnoreProperties({"applicant"})
     private Applicant applicant;
     //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)
 //    private List<Ticket> ticket;

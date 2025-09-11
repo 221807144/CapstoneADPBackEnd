@@ -4,9 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import za.ac.cput.Domain.Registrations.Registration;
+import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Admin;
 import za.ac.cput.Domain.User.Applicant;
+import za.ac.cput.Domain.bookings.Bookings;
 import za.ac.cput.Domain.bookings.TestAppointment;
+import za.ac.cput.Domain.bookings.VehicleDisc;
+import za.ac.cput.Domain.payment.Payment;
+import za.ac.cput.Domain.payment.Ticket;
 import za.ac.cput.Service.impl.AdminService;
 
 import java.util.HashMap;
@@ -68,6 +74,7 @@ public class AdminController {
         data.put("registrations", adminService.getRegistration());
         data.put("testAppointments", adminService.getTestAppointments());
         data.put("vehicleDiscs", adminService.getVehicleDiscs());
+        data.put("vehicles", adminService.getVehicles());
         data.put("tickets", adminService.getTickets());
         return ResponseEntity.ok(data);
     }
@@ -116,10 +123,41 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    @GetMapping("/test-appointments")
-    public ResponseEntity<List<TestAppointment>> getAllTestAppointments() {
-        List<TestAppointment> appointments = adminService.getTestAppointments();
-        return ResponseEntity.ok(appointments);
+
+    @GetMapping("/payments")
+    public ResponseEntity<List<Payment>> getAllPayments() {
+        List<Payment> payments = adminService.getPayments();
+        return ResponseEntity.ok(payments);
+    }
+
+    @GetMapping("/tickets")
+    public ResponseEntity<List<Ticket>> getAllTickets() {
+        List<Ticket> tickets = adminService.getTickets();
+        return ResponseEntity.ok(tickets);
+    }
+
+    @GetMapping("/vehicles")
+    public ResponseEntity<List<Vehicle>> getAllVehicles() {
+        List<Vehicle> vehicles = adminService.getVehicles();
+        return ResponseEntity.ok(vehicles);
+    }
+
+    @GetMapping("/vehicle-discs")
+    public ResponseEntity<List<VehicleDisc>> getAllVehicleDiscs() {
+        List<VehicleDisc> vehicleDiscs = adminService.getVehicleDiscs();
+        return ResponseEntity.ok(vehicleDiscs);
+    }
+
+    @GetMapping("/bookings")
+    public ResponseEntity<List<Bookings>> getAllBookings() {
+        List<Bookings> bookings = adminService.getBookings();
+        return ResponseEntity.ok(bookings);
+    }
+
+    @GetMapping("/registrations")
+    public ResponseEntity<List<Registration>> getAllRegistrations() {
+        List<Registration> registrations = adminService.getRegistration();
+        return ResponseEntity.ok(registrations);
     }
 
 
