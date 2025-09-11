@@ -2,6 +2,7 @@ package za.ac.cput.Service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Admin;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -25,7 +26,9 @@ public class AdminService implements IAdminService {
     private final RegistrationRepository registrationRepository;
     private final TestAppointmentRepository testAppointmentRepository;
     private final VehicleDiscRepository vehicleDiscRepository;
+
     private final TicketRepository ticketRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
     public AdminService(
@@ -36,8 +39,8 @@ public class AdminService implements IAdminService {
             RegistrationRepository registrationRepository,
             TestAppointmentRepository testAppointmentRepository,
             VehicleDiscRepository vehicleDiscRepository,
-            TicketRepository ticketRepository
-    ) {
+            TicketRepository ticketRepository,
+            VehicleRepository vehicleRepository) {
         this.adminRepository = adminRepository;
         this.applicantRepository = applicantRepository;
         this.bookingsRepository = bookingsRepository;
@@ -46,6 +49,7 @@ public class AdminService implements IAdminService {
         this.testAppointmentRepository = testAppointmentRepository;
         this.vehicleDiscRepository = vehicleDiscRepository;
         this.ticketRepository = ticketRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     // --- Admin CRUD ---
@@ -149,6 +153,10 @@ public class AdminService implements IAdminService {
     @Override
     public List<VehicleDisc> getVehicleDiscs() {
         return vehicleDiscRepository.findAll();
+    }
+    @Override
+    public List<Vehicle> getVehicles() {
+        return vehicleRepository.findAll();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package za.ac.cput.Service;
 
+import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Admin;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -24,6 +25,7 @@ public interface IAdminService extends IService<Admin, Integer> {
     List<Registration> getRegistration();
 
     List<TestAppointment> getTestAppointments();
+    List<Vehicle> getVehicles();
 
     List<VehicleDisc> getVehicleDiscs();
 

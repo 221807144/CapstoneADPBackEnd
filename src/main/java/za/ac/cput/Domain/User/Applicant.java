@@ -1,6 +1,7 @@
 package za.ac.cput.Domain.User;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -15,7 +16,7 @@ import java.util.List;
 @DiscriminatorValue("APPLICANT")
 public class Applicant extends User {
 
-    private String idNumber;
+   // private String idNumber;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
@@ -24,21 +25,23 @@ public class Applicant extends User {
     @JoinColumn(name = "contact_id")
     private Contact contact;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id")
-    private Address address;
+//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JoinColumn(name = "address_id")
+//    private Address address;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "license_id")
     private License license;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"applicant"})
     private List<Vehicle> vehicle;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"applicant"})
     private List<TestAppointment> testAppointment;
 
-    // 👇 Added for AdminService compatibility
+
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -94,7 +97,7 @@ public class Applicant extends User {
         return testAppointment;
     }
 
-    // 👇 Added for AdminService
+
     public Status getStatus() {
         return status;
     }
@@ -207,7 +210,7 @@ public class Applicant extends User {
             return this;
         }
 
-        // 👇 Added for AdminService
+
         public Builder setStatus(Status status) {
             this.status = status;
             return this;
