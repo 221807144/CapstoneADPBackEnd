@@ -41,6 +41,7 @@ public class Vehicle {
     private Payment payment;
     @ManyToOne
     @JoinColumn(name = "applicant_id", nullable = false)
+
     @JsonIgnoreProperties({"applicant"})
     private Applicant applicant;
     //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)

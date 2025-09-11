@@ -66,11 +66,11 @@ public class VehicleService implements IVehicleService {
     public void delete(Integer id) {
         vehicleRepository.deleteById(id);
     }
-
-    public void delete(int vehicleID) {
-        vehicleRepository.deleteById(vehicleID);
-    }
-
+//
+//    public void delete(int vehicleID) {
+//        vehicleRepository.deleteById(vehicleID);
+//    }
+//
 
     public List<Vehicle> getVehiclesByApplicant(int applicantId) {
         return vehicleRepository.findByApplicant_UserId(applicantId);
