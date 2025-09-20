@@ -35,47 +35,49 @@ public class VehicleService implements IVehicleService {
         return this.vehicleRepository.save(vehicle);
 
     }
-//    @Deprecated
+////    @Deprecated
 //    @Override
 //    public void delete(Integer integer) {
 //    this.vehicleRepository.deleteById(integer);
-//
 //    }
+
+//@Override
+//public void delete(Integer vehicleId) {
+//    try {
+//        // Check if vehicle exists first (optional, but safer)
+//        if (!vehicleRepository.existsById(vehicleId)) {
+//            throw new IllegalArgumentException("Vehicle with ID " + vehicleId + " does not exist");
+//        }
+//        // Attempt deletion
+//        vehicleRepository.deleteById(vehicleId);
+//    } catch (Exception e) {
+//        // Wrap any exception with a runtime exception with message
+//        throw new RuntimeException("Failed to delete vehicle with ID " + vehicleId + ": " + e.getMessage(), e);
+//    }
+//}
+
     @Override
     public List<Vehicle> getAll() {
         return this.vehicleRepository.findAll();
     }
-    public List<Vehicle> getExpiredVehicles() {
-        return vehicleRepository.findExpiredVehicles();
-    }
-
-//    @Override
-//    public List<Vehicle> getExpiredByApplicant(int applicantId) {
-//        LocalDate today = LocalDate.now();
-//        return vehicleRepository.findExpiredByApplicant(applicantId, today);
-//    }
-    public List<Vehicle> getExpiredByApplicant(int applicantId, LocalDate today) {
-        List<Vehicle> result = vehicleRepository.findExpiredByApplicant(applicantId, today);
-        System.out.println("Expired vehicles for applicant " + applicantId + ": " + result.size());
-        result.forEach(v -> System.out.println("Vehicle: " + v.getLicensePlate() +
-                ", Expiry: " + v.getVehicleDisc().getExpiryDate()));
-        return result;
-    }
 
     @Override
     public void delete(Integer id) {
-        vehicleRepository.deleteById(id);
+        if(vehicleRepository.existsById(id)) {
+            vehicleRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Vehicle with ID " + id + " not found");
+        }
     }
-//
-//    public void delete(int vehicleID) {
-//        vehicleRepository.deleteById(vehicleID);
-//    }
-//
 
     public List<Vehicle> getVehiclesByApplicant(int applicantId) {
         return vehicleRepository.findByApplicant_UserId(applicantId);
     }
 
+    // made changes
+    public List<Vehicle> getExpiredVehiclesForUser(int userId) {
+        return vehicleRepository.findExpiredVehiclesByUser(userId);
+    }
 
 
 

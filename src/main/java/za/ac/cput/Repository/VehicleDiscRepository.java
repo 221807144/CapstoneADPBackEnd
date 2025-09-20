@@ -14,4 +14,6 @@ public interface VehicleDiscRepository extends JpaRepository<VehicleDisc, Long> 
     // Find all vehicle discs that have already expired
     @Query("SELECT vd FROM VehicleDisc vd WHERE vd.expiryDate < :today")
     List<VehicleDisc> findExpiredDiscs(LocalDate today);
+//    //made changes
+//    List<VehicleDisc> getExpiredDiscsByUser(Long userId);
 }
