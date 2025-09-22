@@ -43,30 +43,25 @@ public class VehicleController {
         return vehicleService.update(vehicle);
     }
 
-    @DeleteMapping("/delete/{vehicleID}")
-    public Vehicle delete(@PathVariable int vehicleID) {
-      vehicleService.delete(vehicleID);
-        return null;
-    }
-//
 //    @DeleteMapping("/delete/{vehicleID}")
-//    public ResponseEntity<String> delete(@PathVariable int vehicleID) {
-//        try {
-//            vehicleService.delete(vehicleID);
-//            System.out.println("Vehicle deleted: " + vehicleID);
-//            return ResponseEntity.ok("Vehicle deleted successfully");
-//        } catch (DataIntegrityViolationException e) {
-//            System.err.println("Cannot delete vehicle " + vehicleID + " due to foreign key constraint: " + e.getMessage());
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.CONFLICT)
-//                    .body("Cannot delete vehicle: associated records exist (tickets, payments, etc.)");
-//        } catch (Exception e) {
-//            System.err.println("Error deleting vehicle " + vehicleID + ": " + e.getMessage());
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("Deletion failed: " + e.getMessage());
-//        }
+//    public Vehicle delete(@PathVariable int vehicleID) {
+//      vehicleService.delete(vehicleID);
+//        return null;
 //    }
+//
+@DeleteMapping("/delete/{vehicleID}")
+public ResponseEntity<String> delete(@PathVariable int vehicleID) {
+    boolean deleted = vehicleService.delete(vehicleID);
+
+    if (deleted) {
+        return ResponseEntity.ok("Vehicle deleted successfully");
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Vehicle not found, could not delete");
+    }
+}
+
+
 
 
 //    @DeleteMapping("/delete/{vehicleID}")

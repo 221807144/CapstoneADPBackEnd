@@ -32,7 +32,7 @@ public class Vehicle {
 @JoinColumn(name = "vehicle_disc_id")
     private VehicleDisc vehicleDisc;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL) // Add cascade here too
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // Add cascade here too
     @JoinColumn(name = "vehicle_id")
     private List<Ticket> ticket;
 

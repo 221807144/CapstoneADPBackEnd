@@ -6,7 +6,6 @@ import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Repository.VehicleRepository;
 import za.ac.cput.Service.IVehicleService;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -62,13 +61,25 @@ public class VehicleService implements IVehicleService {
     }
 
     @Override
-    public void delete(Integer id) {
-        if(vehicleRepository.existsById(id)) {
-            vehicleRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Vehicle with ID " + id + " not found");
+    public boolean delete(int vehicleID) {
+        if (vehicleRepository.existsById(vehicleID)) {
+            vehicleRepository.deleteById(vehicleID);
+            return true;
         }
+        return false;
     }
+
+
+//    @Override
+//    public void delete(Integer id) {
+//        if(vehicleRepository.existsById(id)) {
+//            vehicleRepository.deleteById(id);
+//        } else {
+//            throw new RuntimeException("Vehicle with ID " + id + " not found");
+//        }
+//    }
+
+
 
     public List<Vehicle> getVehiclesByApplicant(int applicantId) {
         return vehicleRepository.findByApplicant_UserId(applicantId);
