@@ -2,7 +2,9 @@ package za.ac.cput.Domain.payment;
 
 //Thando Robert Tinto - 221482210
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import za.ac.cput.Domain.Registrations.Vehicle;
 
 import java.time.LocalDate;
 
@@ -18,6 +20,10 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private TicketType ticketType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id") // This should match the mappedBy in Vehicle
+    @JsonIgnore
+    private Vehicle vehicle;
     @OneToOne
     @JoinColumn(name = "payment_id")
     private Payment payment;
@@ -56,6 +62,8 @@ public class Ticket {
     public TicketType getTicketType() {
         return ticketType;
     }
+    public Vehicle getVehicle() { return vehicle; }
+
 
     public static class Builder {
         private int ticketId;
@@ -64,6 +72,7 @@ public class Ticket {
         private String status;
         private Payment payment;
         private TicketType ticketType;
+        private Vehicle vehicle;
 
         public Builder setIssueDate(LocalDate issueDate) {
             this.issueDate = issueDate;
@@ -91,12 +100,18 @@ public class Ticket {
             return this;
         }
 
+        public Builder  setVehicle(Vehicle vehicle) {
+            this.vehicle = vehicle;
+            return this;
+        }
+
         public Builder copy(Builder builder) {
             this.ticketId = builder.ticketId;
             this.ticketAmount = builder.ticketAmount;
             this.issueDate = builder.issueDate;
             this.status = builder.status;
             this.payment = builder.payment;
+
             return this;
         }
 
@@ -114,6 +129,7 @@ public class Ticket {
                 ", status='" + status + '\'' +
                 ", payment=" + payment + '\'' +
                 ", ticketType=" + ticketType +
+                ", vehicle=" + vehicle + '\'' +
                 '}';
     }
 
