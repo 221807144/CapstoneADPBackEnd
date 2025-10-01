@@ -3,6 +3,7 @@ package za.ac.cput.Domain.Registrations;
      Author: Sibahle shange (222529571)*/
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
@@ -32,18 +33,22 @@ public class Vehicle {
 @JoinColumn(name = "vehicle_disc_id")
     private VehicleDisc vehicleDisc;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // Add cascade here too
-    @JoinColumn(name = "vehicle_id")
+    // FIXED: Use mappedBy for proper bidirectional mapping
+    @OneToMany(mappedBy = "vehicle",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<Ticket> ticket;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
     @JsonIgnoreProperties({"user", "vehicle"})
     private Payment payment;
-    @ManyToOne
-    @JoinColumn(name = "applicant_id", nullable = false)
 
-    @JsonIgnoreProperties({"applicant"})
+    // Applicant relationship - FIXED: Use JsonIgnore instead of JsonIgnoreProperties
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "applicant_id", nullable = false)
+    @JsonIgnoreProperties({"vehicles", "testAppointment", "hibernateLazyInitializer", "handler"})
     private Applicant applicant;
     //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)
 //    private List<Ticket> ticket;

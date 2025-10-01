@@ -1,8 +1,11 @@
 package za.ac.cput.Service.impl;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.Domain.Registrations.Vehicle;
+import za.ac.cput.Domain.User.Applicant;
+import za.ac.cput.Repository.ApplicantRepository;
 import za.ac.cput.Repository.VehicleRepository;
 import za.ac.cput.Service.IVehicleService;
 
@@ -12,14 +15,36 @@ import java.util.List;
 public class VehicleService implements IVehicleService {
 
     private VehicleRepository vehicleRepository;
-@Autowired
-    public VehicleService(VehicleRepository vehicleRepository) {
+
+    private  ApplicantRepository applicantRepository;
+    @Autowired
+    public VehicleService(VehicleRepository vehicleRepository, ApplicantRepository applicantRepository) {
         this.vehicleRepository = vehicleRepository;
+        this.applicantRepository = applicantRepository;
     }
 
     @Override
     public Vehicle create(Vehicle vehicle) {
-        return this.vehicleRepository.save(vehicle);
+        // 1️⃣ Fetch the actual Applicant entity from DB
+        Applicant applicant = applicantRepository.findById(vehicle.getApplicant().getUserId())
+                .orElseThrow(() -> new RuntimeException("Applicant not found"));
+
+        // 2️⃣ Build a new Vehicle object with the Builder
+        Vehicle vehicleToSave = new Vehicle.Builder()
+                .setVehicleName(vehicle.getVehicleName())
+                .setVehicleType(vehicle.getVehicleType())
+                .setVehicleModel(vehicle.getVehicleModel())
+                .setVehicleYear(vehicle.getVehicleYear())
+                .setVehicleColor(vehicle.getVehicleColor())
+                .setLicensePlate(vehicle.getLicensePlate())
+                .setEngineNumber(vehicle.getEngineNumber())
+                .setVehicleDisc(vehicle.getVehicleDisc())
+                .setPayment(vehicle.getPayment())
+                .setApplicant(applicant) // ✅ set managed applicant entity
+                .build();
+
+        // 3️⃣ Save to DB
+        return vehicleRepository.save(vehicleToSave);
     }
 
     @Override
@@ -61,12 +86,18 @@ public class VehicleService implements IVehicleService {
     }
 
     @Override
+    @Transactional
     public boolean delete(int vehicleID) {
-        if (vehicleRepository.existsById(vehicleID)) {
-            vehicleRepository.deleteById(vehicleID);
-            return true;
+        try {
+            if (vehicleRepository.existsById(vehicleID)) {
+                vehicleRepository.deleteById(vehicleID);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error deleting vehicle: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
 
