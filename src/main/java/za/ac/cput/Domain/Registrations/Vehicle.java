@@ -38,6 +38,7 @@ public class Vehicle {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
+    @JsonIgnoreProperties({"user", "vehicle"})
     private Payment payment;
     @ManyToOne
     @JoinColumn(name = "applicant_id", nullable = false)
