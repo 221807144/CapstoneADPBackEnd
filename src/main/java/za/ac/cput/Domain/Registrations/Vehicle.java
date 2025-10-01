@@ -42,6 +42,7 @@ public class Vehicle {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
+    @JsonIgnoreProperties({"user", "vehicle"})
     private Payment payment;
 
     // Applicant relationship - FIXED: Use JsonIgnore instead of JsonIgnoreProperties
