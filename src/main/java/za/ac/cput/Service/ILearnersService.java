@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ILearnersService extends IService<Learners, String> {
 
-    List<Learners> getAll();
+    List<Learners> getAll(); // Method to retrieve all Learners records
 }

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Entity
 public class Learners {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Changed to Long
     private Long learnersId;
     private String learnersCode;
     private LocalDate issueDate;

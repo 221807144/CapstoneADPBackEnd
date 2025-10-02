@@ -17,7 +17,7 @@ public class LearnersService implements ILearnersService {
     }
     @Override
     public Learners create(Learners learners) {
-        return this.repository.save(learners);
+        return this.repository.save(learners); // Sinokholo Singazi
     }
     @Override
     public Learners read(String s) {
