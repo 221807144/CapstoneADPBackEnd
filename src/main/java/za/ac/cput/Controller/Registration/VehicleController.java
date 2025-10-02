@@ -1,6 +1,8 @@
 package za.ac.cput.Controller.Registration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
@@ -9,10 +11,9 @@ import za.ac.cput.Service.impl.VehicleService;
 
 import java.time.LocalDate;
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000") // <-- allow React app
 @RestController
 @RequestMapping("/vehicle")
-@CrossOrigin(origins = "http://localhost:3000") // <-- allow React app
 
 public class VehicleController {
     private VehicleService vehicleService;
@@ -43,35 +44,35 @@ public class VehicleController {
     }
 
 //    @DeleteMapping("/delete/{vehicleID}")
-//    public void delete(@PathVariable int vehicleID) {
-//        vehicleService.delete(vehicleID);
+//    public Vehicle delete(@PathVariable int vehicleID) {
+//      vehicleService.delete(vehicleID);
+//        return null;
 //    }
+//
+@DeleteMapping("/delete/{vehicleID}")
+public ResponseEntity<String> delete(@PathVariable int vehicleID) {
+    boolean deleted = vehicleService.delete(vehicleID);
 
-    @DeleteMapping("/delete/{vehicleID}")
-    public ResponseEntity<String> deleteVehicle(@PathVariable int vehicleID) {
-        vehicleService.delete(vehicleID);
+    if (deleted) {
         return ResponseEntity.ok("Vehicle deleted successfully");
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Vehicle not found, could not delete");
     }
+}
+
+
+
+
+//    @DeleteMapping("/delete/{vehicleID}")
+//    public ResponseEntity<String> deleteVehicle(@PathVariable int vehicleID) {
+//        vehicleService.delete(vehicleID);
+//        return null;
+//    }
 
     @GetMapping("/getAll")
     public List<Vehicle> getAll() {
         return vehicleService.getAll();
-    }
-//    @GetMapping("/expired/{userId}")
-//    public List<Vehicle> getExpiredVehiclesByApplicant(@PathVariable Long userId) {
-//        return vehicleService.findExpiredByApplicant(userId);
-//    }
-
-    @GetMapping("/expired/{applicantId}")
-    public List<Vehicle> getExpiredVehicles(@PathVariable int applicantId) {
-        LocalDate today = LocalDate.now();
-        return vehicleService.getExpiredByApplicant(applicantId, today);
-    }
-
-    @GetMapping("/myVehicles/{applicantId}")
-    public List<Vehicle> getMyVehicles(@PathVariable int applicantId) {
-        System.out.println("Fetching vehicles for applicant: " + applicantId);
-        return vehicleService.getVehiclesByApplicant(applicantId);
     }
 
     // VehicleController.java
@@ -81,5 +82,11 @@ public class VehicleController {
         return ResponseEntity.ok(vehicles);
     }
 
+// GET /capstone/vehicles/expired/{userId} - made a change
+@GetMapping("/expired/{userId}")
+public ResponseEntity<List<Vehicle>> getExpiredVehiclesByUser(@PathVariable int userId) {
+    List<Vehicle> expiredVehicles = vehicleService.getExpiredVehiclesForUser(userId);
+    return ResponseEntity.ok(expiredVehicles);
+}
 
 }

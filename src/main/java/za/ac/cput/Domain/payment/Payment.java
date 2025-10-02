@@ -1,6 +1,8 @@
 package za.ac.cput.Domain.payment;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import za.ac.cput.Domain.User.User;
 
 import java.time.LocalDate;
 
@@ -26,6 +28,11 @@ public class Payment {
     private LocalDate expiryDate;
     private short cvv;
 
+    @ManyToOne
+    @JoinColumn(name = "user_Id")
+    @JsonIgnoreProperties({"payments", "vehicle", "testAppointment"})
+    private User user;
+
     public Payment() {
     }
     private Payment(Builder builder) {
@@ -39,6 +46,11 @@ public class Payment {
         this.cardNumber = builder.cardNumber;
         this.expiryDate = builder.expiryDate;
         this.cvv = builder.cvv;
+        this.user = builder.user;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public int getPaymentId() {
@@ -94,6 +106,7 @@ public class Payment {
                 ", cardNumber=" + cardNumber +
                 ", cardDate=" + expiryDate +
                 ", cvv=" + cvv +
+                ", user=" + user +
                 '}';
     }
 
@@ -108,6 +121,7 @@ public class Payment {
         private long cardNumber;
         private LocalDate expiryDate;
         private short cvv;
+        private User user;
 
         public Builder setPaymentType(PaymentType paymentType) {
             this.paymentType = paymentType;
@@ -120,10 +134,10 @@ public class Payment {
             return this;
         }
 
-//        public Builder setPaymentDetails(String paymentDetails) {
-//            this.paymentDetails = paymentDetails;
-//            return this;
-//        }
+        public Builder setUser(User user) {
+            this.user = user;
+            return this;
+        }
 
         public Builder setPaymentAmount(double paymentAmount) {
             this.paymentAmount = paymentAmount;
@@ -166,6 +180,7 @@ public class Payment {
             this.cardNumber = payment.cardNumber;
             this.cvv = payment.cvv;
             this.expiryDate = payment.expiryDate;
+            this.user = payment.user;
             return this;
         }
 

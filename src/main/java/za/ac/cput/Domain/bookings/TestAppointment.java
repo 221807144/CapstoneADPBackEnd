@@ -1,5 +1,6 @@
 package za.ac.cput.Domain.bookings;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.payment.Payment;
@@ -32,6 +33,7 @@ public class TestAppointment {
 
     @ManyToOne
     @JoinColumn(name = "applicant_id")
+    @JsonIgnoreProperties({"applicant"})
     private Applicant applicant;
 
     public TestAppointment() {

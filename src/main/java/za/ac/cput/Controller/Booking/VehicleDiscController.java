@@ -47,4 +47,11 @@ public class VehicleDiscController {
         return vehicleDiscService.getExpiredDiscs();
     }
 
+//    // made changes
+//    @GetMapping("/expired/{userId}")
+//    public List<VehicleDisc> getExpiredDiscsByUser(@PathVariable Long userId) {
+//        return vehicleDiscService.getExpiredDiscsByUser(userId);
+//    }
+
+
 }
