@@ -15,22 +15,26 @@ import java.util.List;
 @DiscriminatorValue("APPLICANT")
 public class Applicant extends User {
 
-    private String idNumber;
+//    private String idNumber;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate birthDate;
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+//    private LocalDate birthDate;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "contact_id")
-    private Contact contact;
+//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JoinColumn(name = "contact_id")
+//    private Contact contact;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id")
-    private Address address;
+//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JoinColumn(name = "address_id")
+//    private Address address;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "license_id")
     private License license;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "learners_id")
+    private Learners learners;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Vehicle> vehicle;
@@ -58,6 +62,7 @@ public class Applicant extends User {
         this.birthDate = builder.birthDate;
         this.address = builder.address;
         this.license = builder.license;
+        this.learners = builder.learners;
         this.firstName = builder.firstName;
         this.lastName = builder.lastName;
         this.contact = builder.contact;
@@ -84,6 +89,9 @@ public class Applicant extends User {
 
     public License getLicense() {
         return license;
+    }
+    public Learners getLearners() {
+        return learners;
     }
 
     public List<Vehicle> getVehicle() {
@@ -118,6 +126,7 @@ public class Applicant extends User {
                 ", idNumber='" + idNumber + '\'' +
                 ", birthDate=" + birthDate +
                 ", license=" + license +
+                ", learners=" + learners +
                 ", vehicle=" + vehicle +
                 ", testAppointment=" + testAppointment +
                 ", status=" + status +
@@ -131,6 +140,7 @@ public class Applicant extends User {
         private LocalDate birthDate;
         private Address address;
         private License license;
+        private Learners learners;
         private String firstName;
         private String lastName;
         private Contact contact;
@@ -164,6 +174,10 @@ public class Applicant extends User {
 
         public Builder setLicense(License license) {
             this.license = license;
+            return this;
+        }
+        public Builder setLearners(Learners learners) {
+            this.learners = learners;
             return this;
         }
 
@@ -224,6 +238,7 @@ public class Applicant extends User {
             this.birthDate = applicant.birthDate;
             this.address = applicant.address;
             this.license = applicant.license;
+            this.learners = applicant.learners;
             this.firstName = applicant.firstName;
             this.lastName = applicant.lastName;
             this.contact = applicant.contact;
