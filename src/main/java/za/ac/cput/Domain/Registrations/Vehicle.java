@@ -41,6 +41,7 @@ public class Vehicle {
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "payment"})
     private List<Ticket> ticket;
 
     @OneToOne(cascade = CascadeType.ALL)

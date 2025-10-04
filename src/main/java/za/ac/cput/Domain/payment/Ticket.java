@@ -25,7 +25,7 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")// This should match the mappedBy in Vehicle
-    @JsonIgnoreProperties({"ticket", "payment", "applicant"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "ticket", "payment", "applicant"})
     private Vehicle vehicle;
     @OneToOne
     @JoinColumn(name = "payment_id")
