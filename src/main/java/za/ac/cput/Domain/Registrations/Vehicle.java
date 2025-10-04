@@ -28,6 +28,9 @@ public class Vehicle {
     private String licensePlate;
     private String engineNumber;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT") // for MySQL, use TEXT for others
+    private String vehicleImage;
 
 @OneToOne(cascade = CascadeType.ALL)
 @JoinColumn(name = "vehicle_disc_id")
@@ -62,6 +65,7 @@ public class Vehicle {
         this.vehicleModel = builder.vehicleModel;
         this.vehicleYear = builder.vehicleYear;
         this.vehicleColor = builder.vehicleColor;
+        this.vehicleImage = builder.vehicleImage;
         this.vehicleDisc = builder.vehicleDisc;
         this.licensePlate = builder.licensePlate;
         this.engineNumber = builder.engineNumber;
@@ -70,7 +74,9 @@ public class Vehicle {
         this.applicant = builder.applicant;
 
     }
-
+    public String getVehicleImage() {
+        return vehicleImage;
+    }
     public int getVehicleID() {
         return vehicleID;
     }
@@ -149,6 +155,7 @@ public class Vehicle {
         private Applicant applicant;
         private String licensePlate;
         private String engineNumber;
+        private String vehicleImage;
 
         public Builder setVehicleID(int vehicleID) {
             this.vehicleID = vehicleID;
@@ -210,6 +217,11 @@ public class Vehicle {
             return this;
         }
 
+        public Builder setVehicleImage(String vehicleImage) {
+            this.vehicleImage = vehicleImage;
+            return this;
+        }
+
         public Builder copy(Vehicle vehicle) {
             this.vehicleID = vehicle.vehicleID;
             this.vehicleName = vehicle.vehicleName;
@@ -223,6 +235,7 @@ public class Vehicle {
             this.ticket = vehicle.ticket;
             this.payment = vehicle.payment;
             this.applicant = vehicle.applicant;
+            this.vehicleImage = vehicle.vehicleImage;
 
             return this;
         }
