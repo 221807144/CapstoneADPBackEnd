@@ -2,7 +2,9 @@ package za.ac.cput.Domain.payment;
 
 //Thando Robert Tinto - 221482210
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 
@@ -21,8 +23,8 @@ public class Ticket {
     private TicketType ticketType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id") // This should match the mappedBy in Vehicle
-    @JsonIgnore
+    @JoinColumn(name = "vehicle_id")// This should match the mappedBy in Vehicle
+    @JsonBackReference
     private Vehicle vehicle;
     @OneToOne
     @JoinColumn(name = "payment_id")
@@ -100,18 +102,17 @@ public class Ticket {
             return this;
         }
 
-        public Builder  setVehicle(Vehicle vehicle) {
+        public Builder setVehicle(Vehicle vehicle) {
             this.vehicle = vehicle;
             return this;
         }
 
-        public Builder copy(Builder builder) {
-            this.ticketId = builder.ticketId;
-            this.ticketAmount = builder.ticketAmount;
-            this.issueDate = builder.issueDate;
-            this.status = builder.status;
-            this.payment = builder.payment;
-
+        public Builder copy(Ticket ticket) {
+            this.ticketId = ticket.ticketId;
+            this.ticketAmount = ticket.ticketAmount;
+            this.issueDate = ticket.issueDate;
+            this.status = ticket.status;
+            this.payment = ticket.payment;
             return this;
         }
 
@@ -123,15 +124,16 @@ public class Ticket {
     @Override
     public String toString() {
         return "Ticket{" +
-                "issueDate=" + issueDate +
-                ", ticketId=" + ticketId +
+                "ticketId=" + ticketId +
                 ", ticketAmount=" + ticketAmount +
+                ", issueDate=" + issueDate +
                 ", status='" + status + '\'' +
-                ", payment=" + payment + '\'' +
                 ", ticketType=" + ticketType +
-                ", vehicle=" + vehicle + '\'' +
+                ", payment=" + (payment != null ? payment.getPaymentId() : "null") +
+                ", vehicle=" + (vehicle != null ? vehicle.getVehicleID() : "null") +
                 '}';
     }
+
 
     public enum TicketType {
         SPEEDING_1_10_KMH(500),
