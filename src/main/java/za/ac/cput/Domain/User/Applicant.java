@@ -42,7 +42,7 @@ public class Applicant extends User {
 
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonIgnoreProperties({"applicant", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({"applicant", "hibernateLazyInitializer", "handler", "vehicleDisc", "tickets"})
     private List<Vehicle> vehicle;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

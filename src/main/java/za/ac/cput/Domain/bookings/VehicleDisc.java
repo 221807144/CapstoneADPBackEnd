@@ -3,8 +3,11 @@ package za.ac.cput.Domain.bookings;
 /*VehicleDisc POJO class
 Author: Sibahle shange (222529571)*/
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
+import za.ac.cput.Domain.payment.Payment;
 
 import java.time.LocalDate;
 @Entity
@@ -14,9 +17,23 @@ public class VehicleDisc {
     private Long discId;
     private LocalDate issueDate;
     private LocalDate expiryDate;
-//
-//    @OneToOne(mappedBy = "vehicleDisc")
-//    private Vehicle vehicle;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_id")
+    @JsonIgnoreProperties({"vehicleDisc", "vehicle"})
+    private Payment payment;
+
+    @OneToOne(mappedBy = "vehicleDisc")
+    @JsonIgnoreProperties({"vehicleDisc"})
+    private Vehicle vehicle;
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+    }
 
     public VehicleDisc() {
     }

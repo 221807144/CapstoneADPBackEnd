@@ -30,18 +30,6 @@ public class VehicleService implements IVehicleService {
         Applicant applicant = applicantRepository.findById(vehicle.getApplicant().getUserId())
                 .orElseThrow(() -> new RuntimeException("Applicant not found"));
 
-        // 2️⃣ If payment exists, attach the User
-        Payment payment = vehicle.getPayment();
-        if (payment != null) {
-            // rebuild Payment with builder, attach managed User
-            payment = new Payment.Builder()
-                    .copy(payment)
-                    .setUser(applicant)
-                    .build();
-        }else{
-            System.out.println("Payment not received: Payment is null");
-        }
-
         // 2️⃣ Build a new Vehicle object with the Builder
         Vehicle vehicleToSave = new Vehicle.Builder()
                 .setVehicleName(vehicle.getVehicleName())
@@ -52,7 +40,6 @@ public class VehicleService implements IVehicleService {
                 .setLicensePlate(vehicle.getLicensePlate())
                 .setEngineNumber(vehicle.getEngineNumber())
                 .setVehicleDisc(vehicle.getVehicleDisc())
-                .setPayment(payment)
                 .setApplicant(applicant) // ✅ set managed applicant entity
                 .build();
 
