@@ -75,7 +75,7 @@ public class TestAppointment {
 
 
     public Boolean getTestResult() {
-        return testResult != null ? testResult : false;
+        return testResult; // can be null → Pending
     }
 
     public String getLicenseCode() {

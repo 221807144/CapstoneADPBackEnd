@@ -22,7 +22,7 @@ public class User {
     protected String lastName;
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "contact_id")
-  @JsonManagedReference
+  //@JsonManagedReference
     protected Contact contact;
 
     protected String password;
