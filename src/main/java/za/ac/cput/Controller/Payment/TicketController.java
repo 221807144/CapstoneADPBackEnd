@@ -50,4 +50,24 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTickets());
     }
 
+    @GetMapping("/vehicle/{vehicleId}")
+    public ResponseEntity<List<Ticket>> getTicketsByVehicle(@PathVariable Integer vehicleId) {
+        List<Ticket> tickets = ticketService.getTicketsByVehicleId(vehicleId);
+        return tickets.isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : ResponseEntity.ok(tickets);
+    }
+
+    @GetMapping("/applicant/{applicantId}")
+    public ResponseEntity<List<Ticket>> getTicketsByApplicant(@PathVariable Integer applicantId) {
+        List<Ticket> tickets = ticketService.getTicketsByApplicantId(applicantId);
+        return tickets.isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : ResponseEntity.ok(tickets);
+    }
+
+    @PutMapping("update/{id}")
+    public ResponseEntity<Ticket> updateTicket(
+            @PathVariable int id,
+            @RequestBody Ticket ticket) {
+        Ticket updated = ticketService.updateTicket(id, ticket);
+        return ResponseEntity.ok(updated);
+    }
+
 }

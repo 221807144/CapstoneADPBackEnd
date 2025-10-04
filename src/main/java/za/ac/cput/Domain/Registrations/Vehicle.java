@@ -48,7 +48,7 @@ public class Vehicle {
     // Applicant relationship - FIXED: Use JsonIgnore instead of JsonIgnoreProperties
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)
-    @JsonIgnoreProperties({"vehicles", "testAppointment", "hibernateLazyInitializer", "handler"})
+    @JsonBackReference
     private Applicant applicant;
     //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)
 //    private List<Ticket> ticket;
