@@ -4,6 +4,7 @@ package za.ac.cput.Domain.payment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
@@ -24,7 +25,7 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")// This should match the mappedBy in Vehicle
-    @JsonBackReference
+    @JsonIgnoreProperties({"ticket", "payment", "applicant"})
     private Vehicle vehicle;
     @OneToOne
     @JoinColumn(name = "payment_id")
@@ -39,6 +40,7 @@ public class Ticket {
         this.status = builder.status;
         this.payment = builder.payment;
         this.ticketType = builder.ticketType;
+        this.vehicle = builder.vehicle;
     }
 
     public LocalDate getIssueDate() {
