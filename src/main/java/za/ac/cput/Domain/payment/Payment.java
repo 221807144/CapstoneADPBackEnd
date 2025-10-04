@@ -31,7 +31,7 @@ public class Payment {
 
     @ManyToOne
     @JoinColumn(name = "user_Id")
-    @JsonIgnoreProperties({"payments", "vehicle", "testAppointment"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicles", "payments"})
     @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
