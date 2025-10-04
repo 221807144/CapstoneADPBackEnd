@@ -14,7 +14,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     // All tickets linked to a specific vehicle
     List<Ticket> findByVehicle_VehicleID(Integer vehicleID);
 
-    @Query("SELECT t FROM Ticket t WHERE t.vehicle.applicant.userId = :userId")
+    @Query("SELECT t FROM Ticket t JOIN FETCH t.vehicle v WHERE v.applicant.userId = :userId")
     List<Ticket> findByVehicleApplicantUserId(@Param("userId") Integer userId);
 
 }
