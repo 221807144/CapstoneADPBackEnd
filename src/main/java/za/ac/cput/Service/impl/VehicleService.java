@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Applicant;
+import za.ac.cput.Domain.payment.Payment;
 import za.ac.cput.Repository.ApplicantRepository;
 import za.ac.cput.Repository.VehicleRepository;
 import za.ac.cput.Service.IVehicleService;
@@ -29,6 +30,18 @@ public class VehicleService implements IVehicleService {
         Applicant applicant = applicantRepository.findById(vehicle.getApplicant().getUserId())
                 .orElseThrow(() -> new RuntimeException("Applicant not found"));
 
+        // 2️⃣ If payment exists, attach the User
+        Payment payment = vehicle.getPayment();
+        if (payment != null) {
+            // rebuild Payment with builder, attach managed User
+            payment = new Payment.Builder()
+                    .copy(payment)
+                    .setUser(applicant)
+                    .build();
+        }else{
+            System.out.println("Payment not received: Payment is null");
+        }
+
         // 2️⃣ Build a new Vehicle object with the Builder
         Vehicle vehicleToSave = new Vehicle.Builder()
                 .setVehicleName(vehicle.getVehicleName())
@@ -39,7 +52,7 @@ public class VehicleService implements IVehicleService {
                 .setLicensePlate(vehicle.getLicensePlate())
                 .setEngineNumber(vehicle.getEngineNumber())
                 .setVehicleDisc(vehicle.getVehicleDisc())
-                .setPayment(vehicle.getPayment())
+                .setPayment(payment)
                 .setApplicant(applicant) // ✅ set managed applicant entity
                 .build();
 

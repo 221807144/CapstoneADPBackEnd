@@ -1,5 +1,6 @@
 package za.ac.cput.Domain.payment;
 
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
@@ -31,6 +32,7 @@ public class Payment {
     @ManyToOne
     @JoinColumn(name = "user_Id")
     @JsonIgnoreProperties({"payments", "vehicle", "testAppointment"})
+    @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
     public Payment() {
