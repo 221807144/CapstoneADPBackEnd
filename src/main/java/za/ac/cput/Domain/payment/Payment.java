@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
+import za.ac.cput.Domain.bookings.VehicleDisc;
 
 import java.time.LocalDate;
 
@@ -35,6 +36,10 @@ public class Payment {
     @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
+    @JsonIgnoreProperties({"payment", "vehicleDisc"})
+    @OneToOne(mappedBy = "payment")
+    private VehicleDisc vehicleDisc;
+
     public Payment() {
     }
     private Payment(Builder builder) {
@@ -49,6 +54,11 @@ public class Payment {
         this.expiryDate = builder.expiryDate;
         this.cvv = builder.cvv;
         this.user = builder.user;
+        this.vehicleDisc = builder.vehicleDisc;
+    }
+
+    public VehicleDisc getVehicleDisc() {
+        return vehicleDisc;
     }
 
     public User getUser() {
@@ -124,10 +134,16 @@ public class Payment {
         private LocalDate expiryDate;
         private short cvv;
         private User user;
+        private VehicleDisc vehicleDisc;
 
         public Builder setPaymentType(PaymentType paymentType) {
             this.paymentType = paymentType;
             this.paymentDetails = paymentType.getPaymentDetails();
+            return this;
+        }
+
+        public Builder setVehicleDisc(VehicleDisc vehicleDisc) {
+            this.vehicleDisc = vehicleDisc;
             return this;
         }
 
@@ -183,6 +199,7 @@ public class Payment {
             this.cvv = payment.cvv;
             this.expiryDate = payment.expiryDate;
             this.user = payment.user;
+            this.vehicleDisc = payment.vehicleDisc;
             return this;
         }
 

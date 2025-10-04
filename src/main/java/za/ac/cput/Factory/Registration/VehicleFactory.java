@@ -37,7 +37,6 @@ public class VehicleFactory {
             .setEngineNumber(engineNumber)
             .setVehicleDisc(vehicleDisc)
             .setTicket(ticket)
-            .setPayment(payment)
             .setApplicant(applicant)
             .build();
  }

@@ -73,7 +73,6 @@ public ResponseEntity<Vehicle> updateVehicle(
                 .setEngineNumber(engineNumber != null ? engineNumber : existingVehicle.getEngineNumber())
                 .setVehicleDisc(existingVehicle.getVehicleDisc())
                 .setTicket(existingVehicle.getTicket())
-                .setPayment(existingVehicle.getPayment())
                 .setApplicant(existingVehicle.getApplicant());
 
         // Handle image upload - FIX: Add data URL prefix

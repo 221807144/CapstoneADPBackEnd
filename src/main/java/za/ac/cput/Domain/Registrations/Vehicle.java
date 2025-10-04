@@ -32,8 +32,9 @@ public class Vehicle {
     @Column(columnDefinition = "LONGTEXT") // for MySQL, use TEXT for others
     private String vehicleImage;
 
-@OneToOne(cascade = CascadeType.ALL)
-@JoinColumn(name = "vehicle_disc_id")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "vehicle_disc_id")
+    @JsonIgnoreProperties({"vehicle"})
     private VehicleDisc vehicleDisc;
 
     // FIXED: Use mappedBy for proper bidirectional mapping
@@ -44,15 +45,11 @@ public class Vehicle {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "payment"})
     private List<Ticket> ticket;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "payment_id")
-    @JsonIgnoreProperties({"user", "vehicle"})
-    private Payment payment;
-
     // Applicant relationship - FIXED: Use JsonIgnore instead of JsonIgnoreProperties
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)
     @JsonBackReference
+    @JsonIgnoreProperties({"vehicles"})
     private Applicant applicant;
     //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)
 //    private List<Ticket> ticket;
@@ -72,7 +69,6 @@ public class Vehicle {
         this.licensePlate = builder.licensePlate;
         this.engineNumber = builder.engineNumber;
         this.ticket = builder.ticket;
-        this.payment = builder.payment;
         this.applicant = builder.applicant;
 
     }
@@ -110,10 +106,6 @@ public class Vehicle {
         return ticket;
     }
 
-    public Payment getPayment() {
-        return payment;
-    }
-
     public String getLicensePlate() {
         return licensePlate;
     }
@@ -139,7 +131,6 @@ public class Vehicle {
                 ", engineNumber='" + engineNumber + '\'' +
                 ", vehicleDisc=" + vehicleDisc +
                 ", ticket=" + ticket +
-                ", payment=" + payment +
                 ", applicant=" + applicant +
                 '}';
     }
@@ -153,7 +144,6 @@ public class Vehicle {
         private String vehicleColor;
         private VehicleDisc vehicleDisc;
         private List<Ticket> ticket;
-        private Payment payment;
         private Applicant applicant;
         private String licensePlate;
         private String engineNumber;
@@ -199,11 +189,6 @@ public class Vehicle {
             return this;
         }
 
-        public Builder setPayment(Payment payment) {
-            this.payment = payment;
-            return this;
-        }
-
         public Builder setApplicant(Applicant applicant) {
             this.applicant = applicant;
             return this;
@@ -235,7 +220,6 @@ public class Vehicle {
             this.licensePlate = vehicle.licensePlate;
             this.engineNumber = vehicle.engineNumber;
             this.ticket = vehicle.ticket;
-            this.payment = vehicle.payment;
             this.applicant = vehicle.applicant;
             this.vehicleImage = vehicle.vehicleImage;
 
