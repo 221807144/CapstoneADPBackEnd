@@ -2,6 +2,7 @@ package za.ac.cput.Service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import za.ac.cput.Domain.payment.Ticket;
 import za.ac.cput.Repository.TicketRepository;
 import za.ac.cput.Service.ITicketService;
@@ -36,6 +37,7 @@ public class TicketService implements ITicketService {
     }
 
     @Override
+    @Transactional
     public Ticket update(Ticket ticket) {
         if (ticketRepository.existsById(ticket.getTicketId())) {
             // Get the existing ticket from the database

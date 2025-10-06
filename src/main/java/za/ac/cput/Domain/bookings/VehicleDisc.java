@@ -8,6 +8,7 @@ import za.ac.cput.Domain.payment.Payment;
 import java.time.LocalDate;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class VehicleDisc {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -7,6 +7,7 @@ import za.ac.cput.Domain.Registrations.Vehicle;
 import java.time.LocalDate;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +27,7 @@ public class Ticket {
 
     @OneToOne
     @JoinColumn(name = "payment_id")
-    @JsonIgnoreProperties({"vehicleDisc", "user"})
+    @JsonIgnoreProperties({"payment", "vehicle", "ticket"})
     private Payment payment;
 
     protected Ticket() {

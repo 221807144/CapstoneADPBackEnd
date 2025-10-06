@@ -11,6 +11,7 @@ import za.ac.cput.Service.impl.PaymentService;
 import za.ac.cput.Service.impl.TicketService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/tickets")
@@ -37,13 +38,20 @@ public class TicketController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Ticket> update(@RequestBody Ticket ticket) {
+    public ResponseEntity<?> update(@RequestBody Ticket ticket) {
         Ticket updated = ticketService.update(ticket);
         if (updated == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticket not found");
         }
-        return ResponseEntity.ok(updated);
+
+        // ✅ Only return minimal data
+        return ResponseEntity.ok(Map.of(
+                "ticketId", updated.getTicketId(),
+                "status", updated.getStatus(),
+                "message", "Ticket updated successfully"
+        ));
     }
+
 
     @GetMapping("/getAll")
     public ResponseEntity<List<Ticket>> getAllTickets() {
