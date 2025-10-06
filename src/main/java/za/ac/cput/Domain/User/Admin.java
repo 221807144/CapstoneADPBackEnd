@@ -15,7 +15,7 @@ import java.util.List;
 @DiscriminatorValue("ADMIN")
 public class Admin extends User {
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "admin_id")
     @JsonIgnoreProperties({"user", "vehicleDisc"})
     private List<Payment> payments = new ArrayList<>();

@@ -26,9 +26,16 @@ public class VehicleController {
     }
 
     @PostMapping("/create")
-    public Vehicle create(@RequestBody Vehicle vehicle) {
-        return vehicleService.create(vehicle);
+    public ResponseEntity<?> createVehicle(@RequestBody Vehicle vehicle) {
+        try {
+            Vehicle saved = vehicleService.create(vehicle);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
+
 //    public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
 //        Vehicle createdVehicle = vehicleService.create(vehicle);
 //        return ResponseEntity.ok(createdVehicle);

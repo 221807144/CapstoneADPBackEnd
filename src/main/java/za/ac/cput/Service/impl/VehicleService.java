@@ -25,12 +25,12 @@ public class VehicleService implements IVehicleService {
     }
 
     @Override
+    @Transactional
     public Vehicle create(Vehicle vehicle) {
-        // 1️⃣ Fetch the actual Applicant entity from DB
+        // ✅ Fetch the Applicant by applicantId, not userId
         Applicant applicant = applicantRepository.findById(vehicle.getApplicant().getUserId())
                 .orElseThrow(() -> new RuntimeException("Applicant not found"));
 
-        // 2️⃣ Build a new Vehicle object with the Builder
         Vehicle vehicleToSave = new Vehicle.Builder()
                 .setVehicleName(vehicle.getVehicleName())
                 .setVehicleType(vehicle.getVehicleType())
@@ -40,12 +40,12 @@ public class VehicleService implements IVehicleService {
                 .setLicensePlate(vehicle.getLicensePlate())
                 .setEngineNumber(vehicle.getEngineNumber())
                 .setVehicleDisc(vehicle.getVehicleDisc())
-                .setApplicant(applicant) // ✅ set managed applicant entity
+                .setApplicant(applicant)
                 .build();
 
-        // 3️⃣ Save to DB
         return vehicleRepository.save(vehicleToSave);
     }
+
 
     @Override
     public Vehicle read(Integer integer) {
