@@ -1,6 +1,8 @@
 package za.ac.cput.Domain.bookings;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.payment.Payment;
@@ -10,10 +12,12 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 @Entity
+@JsonDeserialize(builder = TestAppointment.Builder.class) // <-- ADD THIS
+
 public class TestAppointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long testAppointmentId;  // lowercase
+    private Long testAppointmentId;
 
     private String testAddress;
     private String testVenue;
@@ -27,13 +31,14 @@ public class TestAppointment {
 
     private double testAmount;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne  //(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
+    @JsonIgnoreProperties({"vehicleDisc", "user"})
     private Payment payment;
 
     @ManyToOne
     @JoinColumn(name = "applicant_id")
-    @JsonIgnoreProperties({"applicant"})
+    @JsonIgnoreProperties({"testAppointment", "vehicle", "contact", "address", "bookings"})
     private Applicant applicant;
 
     public TestAppointment() {
@@ -73,9 +78,8 @@ public class TestAppointment {
         return testTime != null ? testTime : LocalTime.of(9, 0);
     }
 
-
     public Boolean getTestResult() {
-        return testResult; // can be null → Pending
+        return testResult;
     }
 
     public String getLicenseCode() {
@@ -89,9 +93,11 @@ public class TestAppointment {
     public double getTestAmount() {
         return testAmount;
     }
+
     public Payment getPayment() {
         return payment;
     }
+
     public Applicant getApplicant() {
         return applicant;
     }
@@ -100,19 +106,26 @@ public class TestAppointment {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         TestAppointment that = (TestAppointment) o;
-        return Double.compare(testAmount, that.testAmount) == 0 && Objects.equals(testAppointmentId, that.testAppointmentId) && Objects.equals(testAddress, that.testAddress) && Objects.equals(testVenue, that.testVenue) && Objects.equals(testDate, that.testDate) && Objects.equals(testTime, that.testTime) && Objects.equals(testResult, that.testResult) && Objects.equals(licenseCode, that.licenseCode) && testype == that.testype && Objects.equals(payment, that.payment) && Objects.equals(applicant, that.applicant);
+        return Double.compare(testAmount, that.testAmount) == 0 &&
+                Objects.equals(testAppointmentId, that.testAppointmentId) &&
+                Objects.equals(testAddress, that.testAddress) &&
+                Objects.equals(testVenue, that.testVenue) &&
+                Objects.equals(testDate, that.testDate) &&
+                Objects.equals(testTime, that.testTime) &&
+                Objects.equals(testResult, that.testResult) &&
+                Objects.equals(licenseCode, that.licenseCode) &&
+                testype == that.testype;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(testAppointmentId, testAddress, testVenue, testDate, testTime, testResult, licenseCode, testype, testAmount, payment, applicant);
+        return Objects.hash(testAppointmentId, testAddress, testVenue, testDate, testTime, testResult, licenseCode, testype, testAmount);
     }
 
     @Override
     public String toString() {
         return "TestAppointment{" +
-                "applicant=" + applicant +
-                ", testAppointmentId=" + testAppointmentId +
+                "testAppointmentId=" + testAppointmentId +
                 ", testAddress='" + testAddress + '\'' +
                 ", testVenue='" + testVenue + '\'' +
                 ", testDate=" + testDate +
@@ -121,10 +134,10 @@ public class TestAppointment {
                 ", licenseCode='" + licenseCode + '\'' +
                 ", testype=" + testype +
                 ", testAmount=" + testAmount +
-                ", payment=" + payment +
+                ", applicantId=" + (applicant != null ? applicant.getUserId() : null) +
                 '}';
     }
-
+    @JsonPOJOBuilder(withPrefix = "set")
     public static class Builder {
         private Long testAppointmentId;
         private String testAddress;
@@ -137,6 +150,7 @@ public class TestAppointment {
         private LocalTime testTime;
         private Payment payment;
         private Applicant applicant;
+
 
         public Builder setTestAppointmentId(Long testAppointmentId) {
             this.testAppointmentId = testAppointmentId;
@@ -177,14 +191,17 @@ public class TestAppointment {
             this.testAmount = testAmount;
             return this;
         }
+
         public Builder setTestTime(LocalTime testTime) {
             this.testTime = testTime;
             return this;
         }
+
         public Builder setPayment(Payment payment) {
             this.payment = payment;
             return this;
         }
+
         public Builder setApplicant(Applicant applicant) {
             this.applicant = applicant;
             return this;
@@ -209,4 +226,6 @@ public class TestAppointment {
             return new TestAppointment(this);
         }
     }
+
+
 }

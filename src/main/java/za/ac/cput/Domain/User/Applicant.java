@@ -1,9 +1,7 @@
 package za.ac.cput.Domain.User;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -18,19 +16,13 @@ import java.util.List;
 @DiscriminatorValue("APPLICANT")
 public class Applicant extends User {
 
-   // private String idNumber;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "contact_id")
+    @JsonIgnoreProperties({"user"})
     private Contact contact;
-
-
-//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    @JoinColumn(name = "address_id")
-//    private Address address;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "license_id")
@@ -40,15 +32,13 @@ public class Applicant extends User {
     @JoinColumn(name = "learners_id")
     private Learners learners;
 
-
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonIgnoreProperties({"applicant", "hibernateLazyInitializer", "handler", "vehicleDisc", "tickets"})
+    @JsonIgnoreProperties({"applicant"})
     private List<Vehicle> vehicle;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnoreProperties({"applicant"})
     private List<TestAppointment> testAppointment;
-
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -61,7 +51,8 @@ public class Applicant extends User {
         REJECTED
     }
 
-    public Applicant() {}
+    public Applicant() {
+    }
 
     private Applicant(Builder builder) {
         this.userId = builder.userId;
@@ -97,6 +88,7 @@ public class Applicant extends User {
     public License getLicense() {
         return license;
     }
+
     public Learners getLearners() {
         return learners;
     }
@@ -108,7 +100,6 @@ public class Applicant extends User {
     public List<TestAppointment> getTestAppointment() {
         return testAppointment;
     }
-
 
     public Status getStatus() {
         return status;
@@ -129,13 +120,11 @@ public class Applicant extends User {
     @Override
     public String toString() {
         return "Applicant{" +
-                "address=" + address +
+                "userId=" + userId +
                 ", idNumber='" + idNumber + '\'' +
                 ", birthDate=" + birthDate +
-                ", license=" + license +
-                ", learners=" + learners +
-                ", vehicle=" + vehicle +
-                ", testAppointment=" + testAppointment +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", status=" + status +
                 ", reason='" + reason + '\'' +
                 '}';
@@ -183,6 +172,7 @@ public class Applicant extends User {
             this.license = license;
             return this;
         }
+
         public Builder setLearners(Learners learners) {
             this.learners = learners;
             return this;
@@ -227,7 +217,6 @@ public class Applicant extends User {
             this.testAppointment = testAppointment;
             return this;
         }
-
 
         public Builder setStatus(Status status) {
             this.status = status;

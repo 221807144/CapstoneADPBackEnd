@@ -1,11 +1,6 @@
 package za.ac.cput.Domain.payment;
 
-//Thando Robert Tinto - 221482210
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 
@@ -14,8 +9,9 @@ import java.time.LocalDate;
 @Entity
 public class Ticket {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int ticketId;
+
     private double ticketAmount;
     private LocalDate issueDate;
     private String status;
@@ -24,15 +20,17 @@ public class Ticket {
     private TicketType ticketType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id")// This should match the mappedBy in Vehicle
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "ticket", "payment", "applicant"})
+    @JoinColumn(name = "vehicle_id")
+    @JsonIgnoreProperties({"ticket", "vehicleDisc", "applicant"})
     private Vehicle vehicle;
 
     @OneToOne
     @JoinColumn(name = "payment_id")
+    @JsonIgnoreProperties({"vehicleDisc", "user"})
     private Payment payment;
 
-    protected Ticket(){}
+    protected Ticket() {
+    }
 
     private Ticket(Builder builder) {
         this.ticketId = builder.ticketId;
@@ -67,8 +65,10 @@ public class Ticket {
     public TicketType getTicketType() {
         return ticketType;
     }
-    public Vehicle getVehicle() { return vehicle; }
 
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
 
     public static class Builder {
         private int ticketId;
@@ -101,7 +101,7 @@ public class Ticket {
 
         public Builder setTicketType(TicketType ticketType) {
             this.ticketType = ticketType;
-            this.ticketAmount = ticketType.getFineAmount();  // Auto-set amount from enum
+            this.ticketAmount = ticketType.getFineAmount();
             return this;
         }
 
@@ -116,6 +116,8 @@ public class Ticket {
             this.issueDate = ticket.issueDate;
             this.status = ticket.status;
             this.payment = ticket.payment;
+            this.ticketType = ticket.ticketType;
+            this.vehicle = ticket.vehicle;
             return this;
         }
 
@@ -132,11 +134,10 @@ public class Ticket {
                 ", issueDate=" + issueDate +
                 ", status='" + status + '\'' +
                 ", ticketType=" + ticketType +
-                ", payment=" + (payment != null ? payment.getPaymentId() : "null") +
-                ", vehicle=" + (vehicle != null ? vehicle.getVehicleID() : "null") +
+                ", paymentId=" + (payment != null ? payment.getPaymentId() : null) +
+                ", vehicleId=" + (vehicle != null ? vehicle.getVehicleID() : null) +
                 '}';
     }
-
 
     public enum TicketType {
         SPEEDING_1_10_KMH(500),

@@ -1,6 +1,6 @@
 package za.ac.cput.Domain.bookings;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
 
@@ -20,13 +20,16 @@ public class Bookings {
 
     @OneToOne
     @JoinColumn(name = "vehicle_disc_id")
+    @JsonIgnoreProperties({"vehicle", "payment"})
     private VehicleDisc vehicleDisc;
 
     @OneToOne
-    @JoinColumn(name = "test_test_id")
+    @JoinColumn(name = "test_appointment_id")
+    @JsonIgnoreProperties({"applicant", "payment"})
     private TestAppointment test;
-    @OneToMany(mappedBy = "bookings")
-    @JsonBackReference
+
+    @OneToMany(mappedBy = "bookings", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"bookings", "contact", "address", "vehicle", "testAppointment", "payments"})
     private List<User> users;
 
     public enum Booktype {
@@ -34,15 +37,16 @@ public class Bookings {
         TEST
     }
 
-    public Bookings() {}
+    public Bookings() {
+    }
 
-    public Bookings(Builder builder) {
+    private Bookings(Builder builder) {
         this.bookingId = builder.bookingId;
         this.booktype = builder.booktype;
         this.bookingDate = builder.bookingDate;
         this.vehicleDisc = builder.vehicleDisc;
         this.test = builder.test;
-        this.users= builder.users;
+        this.users = builder.users;
     }
 
     public Long getBookingId() {
@@ -64,7 +68,8 @@ public class Bookings {
     public TestAppointment getTest() {
         return test;
     }
-    public List<User> getUser() {
+
+    public List<User> getUsers() {
         return users;
     }
 
@@ -74,9 +79,9 @@ public class Bookings {
                 "bookingId=" + bookingId +
                 ", booktype=" + booktype +
                 ", bookingDate=" + bookingDate +
-                ", vehicleDisc=" + vehicleDisc +
-                ", test=" + test +
-                ", user=" + users +
+                ", vehicleDiscId=" + (vehicleDisc != null ? vehicleDisc.getDiscId() : null) +
+                ", testId=" + (test != null ? test.getTestAppointmentId() : null) +
+                ", usersCount=" + (users != null ? users.size() : 0) +
                 '}';
     }
 
@@ -112,7 +117,8 @@ public class Bookings {
             this.test = test;
             return this;
         }
-        public Builder setUser(List<User> users) {
+
+        public Builder setUsers(List<User> users) {
             this.users = users;
             return this;
         }
@@ -124,7 +130,6 @@ public class Bookings {
             this.vehicleDisc = bookings.vehicleDisc;
             this.test = bookings.test;
             this.users = bookings.users;
-
             return this;
         }
 

@@ -1,6 +1,6 @@
 package za.ac.cput.Domain.User;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.bookings.Bookings;
 import za.ac.cput.Domain.contact.Address;
@@ -15,26 +15,29 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int userId;
+
     @Column(unique = true, nullable = false)
     protected String idNumber;
+
     protected LocalDate birthDate;
     protected String firstName;
     protected String lastName;
+
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "contact_id")
-  //@JsonManagedReference
+    @JsonIgnoreProperties({"user"})
     protected Contact contact;
 
     protected String password;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id")
-  @JsonManagedReference
+    @JsonIgnoreProperties({"user"})
     protected Address address;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "Bookings_id")
-
+    @JoinColumn(name = "bookings_id")
+    @JsonIgnoreProperties({"users"})
     protected Bookings bookings;
 
     @Enumerated(EnumType.STRING)
@@ -136,10 +139,6 @@ public class User {
                 ", birthDate=" + birthDate +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", contact=" + contact +
-                ", password='" + password + '\'' +
-                ", address=" + address +
-                ", bookings=" + bookings +
                 ", role=" + role +
                 '}';
     }

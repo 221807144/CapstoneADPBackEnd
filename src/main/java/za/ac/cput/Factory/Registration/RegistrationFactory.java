@@ -4,11 +4,13 @@ import za.ac.cput.Domain.Registrations.Registration;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Util.Helper;
 
+import java.time.LocalDate;
+
 public class RegistrationFactory {
 
-    public static Registration createRegistration(String registrationNumber, String registrationDate, Vehicle vehicle) {
+    public static Registration createRegistration(String registrationNumber, LocalDate registrationDate, Vehicle vehicle) {
         if (Helper.isNullOrEmpty(registrationNumber)
-                || Helper.isNullOrEmpty(registrationDate)
+
                 || vehicle == null) {
             return null;
         }

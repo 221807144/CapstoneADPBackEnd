@@ -1,23 +1,23 @@
 package za.ac.cput.Domain.contact;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
 
-/*Masibuve Sikhulume
-221807144
- */
 @Entity
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int contactId;
+
     @Column(unique = true, nullable = false)
     private String cellphone;
+
     @Column(unique = true, nullable = false)
     private String email;
+
     @OneToOne(mappedBy = "contact")
-    @JsonBackReference
+    @JsonIgnoreProperties({"contact", "address", "bookings", "vehicle", "testAppointment", "payments"})
     private User user;
 
     public Contact() {
@@ -41,6 +41,7 @@ public class Contact {
     public String getEmail() {
         return email;
     }
+
     public User getUser() {
         return user;
     }
@@ -51,7 +52,6 @@ public class Contact {
                 "contactId=" + contactId +
                 ", cellphone='" + cellphone + '\'' +
                 ", email='" + email + '\'' +
-                ", user=" + user +
                 '}';
     }
 
@@ -74,8 +74,8 @@ public class Contact {
         public Builder setEmail(String email) {
             this.email = email;
             return this;
-
         }
+
         public Builder setUser(User user) {
             this.user = user;
             return this;

@@ -1,6 +1,5 @@
 package za.ac.cput.Domain.payment;
 
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
@@ -8,20 +7,18 @@ import za.ac.cput.Domain.bookings.VehicleDisc;
 
 import java.time.LocalDate;
 
-/*
-Thando Tinto
-221482210
-*/
-
 @Entity
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int paymentId;
+
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
     private String paymentDetails;
     private double paymentAmount;
     private LocalDate paymentDate;
@@ -31,17 +28,17 @@ public class Payment {
     private short cvv;
 
     @ManyToOne
-    @JoinColumn(name = "user_Id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicles", "payments"})
-    @JsonIdentityReference(alwaysAsId = true)
+    @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"payments", "vehicles", "testAppointment", "bookings", "vehicle"})
     private User user;
 
-    @JsonIgnoreProperties({"payment", "vehicleDisc"})
     @OneToOne(mappedBy = "payment")
+    @JsonIgnoreProperties({"payment", "vehicle"})
     private VehicleDisc vehicleDisc;
 
     public Payment() {
     }
+
     private Payment(Builder builder) {
         this.paymentId = builder.paymentId;
         this.paymentType = builder.paymentType;
@@ -107,18 +104,18 @@ public class Payment {
 
     @Override
     public String toString() {
-        return "Payments{" +
+        return "Payment{" +
                 "paymentId=" + paymentId +
                 ", paymentType=" + paymentType +
                 ", paymentMethod='" + paymentMethod + '\'' +
                 ", paymentDetails='" + paymentDetails + '\'' +
                 ", paymentAmount=" + paymentAmount +
                 ", paymentDate=" + paymentDate +
-                ", cardName='" + cardholderName + '\'' +
+                ", cardholderName='" + cardholderName + '\'' +
                 ", cardNumber=" + cardNumber +
-                ", cardDate=" + expiryDate +
+                ", expiryDate=" + expiryDate +
                 ", cvv=" + cvv +
-                ", user=" + user +
+                ", userId=" + (user != null ? user.getUserId() : null) +
                 '}';
     }
 
@@ -211,7 +208,7 @@ public class Payment {
     public enum PaymentType {
         Ticket("Payment for ticket."),
         Booking("Payment for booking."),
-        Disc("Payment for vehicle disc."),;
+        Disc("Payment for vehicle disc.");
 
         private final String PaymentDetails;
 
@@ -222,13 +219,10 @@ public class Payment {
         public String getPaymentDetails() {
             return PaymentDetails;
         }
-
     }
-    public enum PaymentMethod{
+
+    public enum PaymentMethod {
         Card,
         Cash
     }
 }
-
-
-

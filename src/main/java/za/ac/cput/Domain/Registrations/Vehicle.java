@@ -1,14 +1,9 @@
 package za.ac.cput.Domain.Registrations;
- /*Vehicle POJO class
-     Author: Sibahle shange (222529571)*/
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.VehicleDisc;
-import za.ac.cput.Domain.payment.Payment;
 import za.ac.cput.Domain.payment.Ticket;
 
 import java.util.List;
@@ -17,43 +12,37 @@ import java.util.List;
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private int vehicleID;
+
     private String vehicleName;
     private String vehicleType;
     private String vehicleModel;
     private String vehicleYear;
     private String vehicleColor;
+
     @Column(unique = true, nullable = false)
     private String licensePlate;
+
     private String engineNumber;
 
     @Lob
-    @Column(columnDefinition = "LONGTEXT") // for MySQL, use TEXT for others
+    @Column(columnDefinition = "LONGTEXT")
     private String vehicleImage;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vehicle_disc_id")
-    @JsonIgnoreProperties({"vehicle"})
+    @JsonIgnoreProperties({"vehicle", "payment"})
     private VehicleDisc vehicleDisc;
 
-    // FIXED: Use mappedBy for proper bidirectional mapping
-    @OneToMany(mappedBy = "vehicle",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "payment"})
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"vehicle", "payment"})
     private List<Ticket> ticket;
 
-    // Applicant relationship - FIXED: Use JsonIgnore instead of JsonIgnoreProperties
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)
-    @JsonBackReference
-    @JsonIgnoreProperties({"vehicles"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "testAppointment", "contact", "address", "bookings", "license", "learners"})
     private Applicant applicant;
-    //    @OneToMany(mappedBy = "vehicle", fetch = FetchType.EAGER)
-//    private List<Ticket> ticket;
-//
+
     public Vehicle() {
     }
 
@@ -70,11 +59,12 @@ public class Vehicle {
         this.engineNumber = builder.engineNumber;
         this.ticket = builder.ticket;
         this.applicant = builder.applicant;
-
     }
+
     public String getVehicleImage() {
         return vehicleImage;
     }
+
     public int getVehicleID() {
         return vehicleID;
     }
@@ -94,6 +84,7 @@ public class Vehicle {
     public String getVehicleColor() {
         return vehicleColor;
     }
+
     public String getVehicleYear() {
         return vehicleYear;
     }
@@ -129,13 +120,11 @@ public class Vehicle {
                 ", vehicleColor='" + vehicleColor + '\'' +
                 ", licensePlate='" + licensePlate + '\'' +
                 ", engineNumber='" + engineNumber + '\'' +
-                ", vehicleDisc=" + vehicleDisc +
-                ", ticket=" + ticket +
-                ", applicant=" + applicant +
+                ", applicantId=" + (applicant != null ? applicant.getUserId() : null) +
                 '}';
     }
 
-    public static class Builder{
+    public static class Builder {
         private int vehicleID;
         private String vehicleName;
         private String vehicleType;
@@ -222,9 +211,9 @@ public class Vehicle {
             this.ticket = vehicle.ticket;
             this.applicant = vehicle.applicant;
             this.vehicleImage = vehicle.vehicleImage;
-
             return this;
         }
+
         public Vehicle build() {
             return new Vehicle(this);
         }

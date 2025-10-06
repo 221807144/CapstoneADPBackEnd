@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.TestAppointment;
+import za.ac.cput.Service.impl.ApplicantService;
+import za.ac.cput.Service.impl.PaymentService;
 import za.ac.cput.Service.impl.TestAppointmentService;
 
 import java.util.List;
@@ -12,11 +14,15 @@ import java.util.List;
 @RequestMapping("/test-appointments")
 @CrossOrigin(origins = "http://localhost:3000") //updated
 public class TestAppointmentController {
-    private TestAppointmentService testAppointmentService;
 
-    @Autowired
-    public TestAppointmentController(TestAppointmentService testAppointmentService) {
+    private TestAppointmentService testAppointmentService;
+    private ApplicantService applicantService;
+    private PaymentService paymentService;
+@Autowired
+    public TestAppointmentController(TestAppointmentService testAppointmentService, ApplicantService applicantService, PaymentService paymentService) {
         this.testAppointmentService = testAppointmentService;
+        this.applicantService = applicantService;
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/create")
@@ -43,6 +49,7 @@ public class TestAppointmentController {
     public List<TestAppointment> getAll() {
         return testAppointmentService.getAll();
     }
+
     @GetMapping("/by-applicant/{applicantId}")
     public List<TestAppointment> getByApplicant(@PathVariable Long applicantId) {
         return testAppointmentService.getByApplicantId(applicantId);

@@ -1,5 +1,6 @@
 package za.ac.cput.Domain.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.bookings.Bookings;
 import za.ac.cput.Domain.contact.Address;
@@ -16,7 +17,7 @@ public class Admin extends User {
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "admin_id")
-    // REMOVE @JsonManagedReference - this is causing the error
+    @JsonIgnoreProperties({"user", "vehicleDisc"})
     private List<Payment> payments = new ArrayList<>();
 
     public Admin() {
@@ -43,17 +44,13 @@ public class Admin extends User {
     @Override
     public String toString() {
         return "Admin{" +
-                "payments=" + payments +
-                ", userId=" + userId +
+                "userId=" + userId +
                 ", idNumber='" + idNumber + '\'' +
                 ", birthDate=" + birthDate +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", contact=" + contact +
-                ", password='" + password + '\'' +
-                ", address=" + address +
-                ", bookings=" + bookings +
                 ", role=" + role +
+                ", paymentsCount=" + (payments != null ? payments.size() : 0) +
                 '}';
     }
 
