@@ -1,6 +1,8 @@
 package za.ac.cput.Domain.Registrations;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.VehicleDisc;
@@ -9,16 +11,21 @@ import za.ac.cput.Domain.payment.Ticket;
 import java.util.List;
 
 @Entity
+//@JsonDeserialize(builder = Vehicle.Builder.class) // <--- Add this
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int vehicleID;
 
     private String vehicleName;
-    private String vehicleType;
+//    private String vehicleType;
     private String vehicleModel;
     private String vehicleYear;
     private String vehicleColor;
+
+
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType;
 
     @Column(unique = true, nullable = false)
     private String licensePlate;
@@ -31,16 +38,19 @@ public class Vehicle {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vehicle_disc_id")
-    @JsonIgnoreProperties({"vehicle", "payment"})
+//    @JsonBackReference // prevents Applicant → Vehicle → Applicant loop
+
+//   @JsonIgnoreProperties({"vehicle"}) // ✅ only ignore "vehicle", not "payment"
     private VehicleDisc vehicleDisc;
 
-    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"vehicle", "payment"})
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY) @JsonIgnoreProperties({"vehicle"}) // ✅ only ignore "vehicle", not "payment"
     private List<Ticket> ticket;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "testAppointment", "contact", "address", "bookings", "license", "learners"})
+    @JsonBackReference(value = "applicant-vehicle")
+
+//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "vehicle", "testAppointment", "contact", "address", "bookings", "license", "learners"})
     private Applicant applicant;
 
     public Vehicle() {
@@ -73,7 +83,7 @@ public class Vehicle {
         return vehicleName;
     }
 
-    public String getVehicleType() {
+    public VehicleType getVehicleType() {
         return vehicleType;
     }
 
@@ -124,10 +134,11 @@ public class Vehicle {
                 '}';
     }
 
+//    @JsonPOJOBuilder(withPrefix = "set")
     public static class Builder {
         private int vehicleID;
         private String vehicleName;
-        private String vehicleType;
+        private VehicleType vehicleType;
         private String vehicleModel;
         private String vehicleYear;
         private String vehicleColor;
@@ -148,7 +159,7 @@ public class Vehicle {
             return this;
         }
 
-        public Builder setVehicleType(String vehicleType) {
+        public Builder setVehicleType(VehicleType vehicleType) {
             this.vehicleType = vehicleType;
             return this;
         }

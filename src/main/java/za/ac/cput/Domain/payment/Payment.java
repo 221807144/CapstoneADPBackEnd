@@ -1,5 +1,6 @@
 package za.ac.cput.Domain.payment;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
@@ -34,7 +35,8 @@ public class Payment {
     private User user;
 
     @OneToOne(mappedBy = "payment")
-    @JsonIgnoreProperties({"payment", "vehicle"})
+    @JsonBackReference  // prevents VehicleDisc → Payment → VehicleDisc loop
+//    @JsonIgnoreProperties({"payment"}) // ignore backref only
     private VehicleDisc vehicleDisc;
 
     public Payment() {

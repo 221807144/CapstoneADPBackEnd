@@ -1,7 +1,6 @@
 package za.ac.cput.Controller.Registration;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +9,6 @@ import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Service.impl.VehicleService;
 
 
-import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000") // <-- allow React app
@@ -72,7 +70,7 @@ public ResponseEntity<Vehicle> updateVehicle(
         Vehicle.Builder builder = new Vehicle.Builder()
                 .setVehicleID(existingVehicle.getVehicleID())
                 .setVehicleName(existingVehicle.getVehicleName())
-                .setVehicleType(vehicleType != null ? vehicleType : existingVehicle.getVehicleType())
+//                .setVehicleType(vehicleType != null ? VehicleType : existingVehicle.getVehicleType())
                 .setVehicleModel(existingVehicle.getVehicleModel())
                 .setVehicleYear(vehicleYear != null ? vehicleYear : existingVehicle.getVehicleYear())
                 .setVehicleColor(vehicleColor != null ? vehicleColor : existingVehicle.getVehicleColor())
@@ -80,7 +78,10 @@ public ResponseEntity<Vehicle> updateVehicle(
                 .setEngineNumber(engineNumber != null ? engineNumber : existingVehicle.getEngineNumber())
                 .setVehicleDisc(existingVehicle.getVehicleDisc())
                 .setTicket(existingVehicle.getTicket())
-                .setApplicant(existingVehicle.getApplicant());
+                .setApplicant(existingVehicle.getApplicant())
+                .setVehicleType(existingVehicle.getVehicleType());
+
+
 
         // Handle image upload - FIX: Add data URL prefix
         if (imageFile != null && !imageFile.isEmpty()) {

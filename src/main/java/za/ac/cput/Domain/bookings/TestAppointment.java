@@ -1,5 +1,6 @@
 package za.ac.cput.Domain.bookings;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -12,7 +13,7 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 @Entity
-@JsonDeserialize(builder = TestAppointment.Builder.class) // <-- ADD THIS
+//@JsonDeserialize(builder = TestAppointment.Builder.class) // <-- ADD THIS
 
 public class TestAppointment {
     @Id
@@ -31,14 +32,16 @@ public class TestAppointment {
 
     private double testAmount;
 
-    @OneToOne  //(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
     @JsonIgnoreProperties({"vehicleDisc", "user"})
     private Payment payment;
 
     @ManyToOne
     @JoinColumn(name = "applicant_id")
-    @JsonIgnoreProperties({"testAppointment", "vehicle", "contact", "address", "bookings"})
+    @JsonBackReference(value = "applicant-test")
+
+//    @JsonIgnoreProperties({"testAppointment", "vehicle", "contact", "address", "bookings"})
     private Applicant applicant;
 
     public TestAppointment() {
@@ -137,7 +140,7 @@ public class TestAppointment {
                 ", applicantId=" + (applicant != null ? applicant.getUserId() : null) +
                 '}';
     }
-    @JsonPOJOBuilder(withPrefix = "set")
+//    @JsonPOJOBuilder(withPrefix = "set")
     public static class Builder {
         private Long testAppointmentId;
         private String testAddress;

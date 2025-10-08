@@ -2,6 +2,7 @@ package za.ac.cput.Domain.User;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.bookings.Bookings;
@@ -33,11 +34,15 @@ public class Applicant extends User {
     private Learners learners;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"applicant"})
+//    @JsonIgnoreProperties({"applicant"})
+    @JsonManagedReference(value = "applicant-vehicle")
+
     private List<Vehicle> vehicle;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"applicant"})
+//    @JsonIgnoreProperties({"applicant"})
+    @JsonManagedReference(value = "applicant-test")
+
     private List<TestAppointment> testAppointment;
 
     @Enumerated(EnumType.STRING)
