@@ -2,6 +2,7 @@ package za.ac.cput.Domain.bookings;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.persistence.*;
@@ -34,7 +35,8 @@ public class TestAppointment {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
-    @JsonIgnoreProperties({"vehicleDisc", "user"})
+    @JsonManagedReference(value = "appointment-test")
+//    @JsonIgnoreProperties({"vehicleDisc", "user"})
     private Payment payment;
 
     @ManyToOne
