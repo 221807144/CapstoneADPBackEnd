@@ -60,6 +60,7 @@ public class Payment {
         this.cvv = builder.cvv;
         this.user = builder.user;
         this.vehicleDisc = builder.vehicleDisc;
+        this.testAppointment = builder.testAppointment;
     }
 
     public VehicleDisc getVehicleDisc() {
@@ -140,6 +141,8 @@ public class Payment {
         private short cvv;
         private User user;
         private VehicleDisc vehicleDisc;
+        private TestAppointment testAppointment;
+
 
         public Builder setPaymentType(PaymentType paymentType) {
             this.paymentType = paymentType;
@@ -192,6 +195,11 @@ public class Payment {
             return this;
         }
 
+        public Builder setTestAppointment(TestAppointment testAppointment) {
+            this.testAppointment = testAppointment;
+            return this;
+        }
+
         public Builder copy(Payment payment) {
             this.paymentId = payment.paymentId;
             this.paymentType = payment.paymentType;
@@ -205,6 +213,7 @@ public class Payment {
             this.expiryDate = payment.expiryDate;
             this.user = payment.user;
             this.vehicleDisc = payment.vehicleDisc;
+            this.testAppointment = payment.testAppointment;
             return this;
         }
 
