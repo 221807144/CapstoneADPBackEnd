@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.User.User;
+import za.ac.cput.Domain.bookings.TestAppointment;
 import za.ac.cput.Domain.bookings.VehicleDisc;
 
 import java.time.LocalDate;
@@ -38,6 +39,10 @@ public class Payment {
     @JsonBackReference  // prevents VehicleDisc → Payment → VehicleDisc loop
 //    @JsonIgnoreProperties({"payment"}) // ignore backref only
     private VehicleDisc vehicleDisc;
+
+    @OneToOne
+    @JsonBackReference(value = "appointment-test")
+    private TestAppointment testAppointment;
 
     public Payment() {
     }
