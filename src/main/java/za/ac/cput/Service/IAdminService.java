@@ -38,4 +38,5 @@ public interface IAdminService extends IService<Admin, Integer> {
     boolean deleteVehicleDisc(Long id);
     boolean deletePayment(Integer id);
     boolean deleteTicket(Integer id);
+    TestAppointment updateTestResult(Long testAppointmentId, Boolean testResult, String notes);
 }

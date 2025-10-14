@@ -93,6 +93,10 @@ public class TestAppointment {
         return testype;
     }
 
+    public void setTestResult(Boolean testResult) {
+        this.testResult = testResult;
+    }
+
     public double getTestAmount() {
         return testAmount;
     }
@@ -104,6 +108,7 @@ public class TestAppointment {
     public Applicant getApplicant() {
         return applicant;
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -140,7 +145,9 @@ public class TestAppointment {
                 ", applicantId=" + (applicant != null ? applicant.getUserId() : null) +
                 '}';
     }
-//    @JsonPOJOBuilder(withPrefix = "set")
+
+
+    //    @JsonPOJOBuilder(withPrefix = "set")
     public static class Builder {
         private Long testAppointmentId;
         private String testAddress;

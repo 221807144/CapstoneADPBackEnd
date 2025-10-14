@@ -52,7 +52,7 @@ public class AdminService implements IAdminService {
         this.vehicleRepository = vehicleRepository;
     }
 
-    // --- Admin CRUD ---
+
     @Override
     public Admin create(Admin admin) {
         return adminRepository.save(admin);
@@ -83,7 +83,7 @@ public class AdminService implements IAdminService {
         return adminRepository.findAll();
     }
 
-    // --- Applicant ---
+
     @Override
     public List<Applicant> getAllApplicants() {
         return applicantRepository.findAll();
@@ -98,7 +98,7 @@ public class AdminService implements IAdminService {
         return false;
     }
 
-    // --- Bookings ---
+
     @Override
     public List<Bookings> getBookings() {
         return bookingsRepository.findAll();
@@ -113,7 +113,7 @@ public class AdminService implements IAdminService {
         return false;
     }
 
-    // --- Payments ---
+
     @Override
     public List<Payment> getPayments() {
         return paymentRepository.findAll();
@@ -128,13 +128,12 @@ public class AdminService implements IAdminService {
         return false;
     }
 
-    // --- Registrations ---
+
     @Override
     public List<Registration> getRegistration() {
         return registrationRepository.findAll();
     }
 
-    // --- Test Appointments ---
     @Override
     public List<TestAppointment> getTestAppointments() {
         return testAppointmentRepository.findAll();
@@ -149,7 +148,7 @@ public class AdminService implements IAdminService {
         return false;
     }
 
-    // --- Vehicle Discs ---
+
     @Override
     public List<VehicleDisc> getVehicleDiscs() {
         return vehicleDiscRepository.findAll();
@@ -168,7 +167,7 @@ public class AdminService implements IAdminService {
         return false;
     }
 
-    // --- Tickets ---
+
     @Override
     public List<Ticket> getTickets() {
         return ticketRepository.findAll();
@@ -195,5 +194,16 @@ public class AdminService implements IAdminService {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid status value. Use PENDING, ACCEPTED, or REJECTED.");
         }
+    }
+    @Override
+    public TestAppointment updateTestResult(Long testAppointmentId, Boolean testResult, String notes) {
+        // You need to inject TestAppointmentRepository in your AdminService
+        TestAppointment testAppointment = testAppointmentRepository.findById(testAppointmentId)
+                .orElseThrow(() -> new RuntimeException("Test appointment not found with ID: " + testAppointmentId));
+
+        testAppointment.setTestResult(testResult);
+        // If you have a notes field: testAppointment.setNotes(notes);
+
+        return testAppointmentRepository.save(testAppointment);
     }
 }
