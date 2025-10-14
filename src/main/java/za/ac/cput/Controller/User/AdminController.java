@@ -31,10 +31,30 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    // Create Admin
+    // Create Admin   made changes to create
+//    @PostMapping("/create")
+//    public ResponseEntity<Admin> create(@RequestBody Admin admin) {
+//        return ResponseEntity.ok(adminService.create(admin));
+//    }
+
+    // Create Admin with strict email validation
     @PostMapping("/create")
-    public ResponseEntity<Admin> create(@RequestBody Admin admin) {
-        return ResponseEntity.ok(adminService.create(admin));
+    public ResponseEntity<?> create(@RequestBody Admin admin) {
+        // Validate admin email - MUST end with @admin.co.za
+        if (admin.getContact() == null || admin.getContact().getEmail() == null) {
+            return ResponseEntity.badRequest().body("Email is required for admin registration");
+        }
+
+        String email = admin.getContact().getEmail();
+
+        // Strict validation: admin emails must end with @admin.co.za
+        if (!email.endsWith("@admin.co.za")) {
+            return ResponseEntity.badRequest()
+                    .body("Admin registration requires an email ending with @admin.co.za");
+        }
+
+        Admin created = adminService.create(admin);
+        return ResponseEntity.ok(created);
     }
 
     // Read Admin by ID
