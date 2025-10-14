@@ -123,6 +123,29 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // Update Test Result
+    @PutMapping("/test-appointments/update-result/{id}")
+    public ResponseEntity<?> updateTestResult(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+
+        Boolean testResult = (Boolean) payload.get("testResult");
+        String notes = (String) payload.get("notes");
+
+        if (testResult == null) {
+            return ResponseEntity.badRequest().body("Test result is required");
+        }
+
+        try {
+            TestAppointment updated = adminService.updateTestResult(id, testResult, notes);
+            if (updated == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating test result: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/payments")
     public ResponseEntity<List<Payment>> getAllPayments() {
