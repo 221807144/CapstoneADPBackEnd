@@ -19,7 +19,7 @@ public class LicenseController {
 
     @PostMapping("/create")
     public License create(@RequestBody License license) {
-        return licenseService.create(license);
+        return licenseService.create(license); // changed
     }
 
     @GetMapping("/read/{licenseId}")
