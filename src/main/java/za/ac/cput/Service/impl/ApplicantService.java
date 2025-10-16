@@ -1,6 +1,8 @@
 package za.ac.cput.Service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Repository.ApplicantRepository;
@@ -14,6 +16,9 @@ public class ApplicantService implements IApplicantService {
 
     private final ApplicantRepository applicantRepository;
 
+private BCryptPasswordEncoder bCryptPasswordEncoder =  new BCryptPasswordEncoder(12);
+
+
     @Autowired
     public ApplicantService(ApplicantRepository applicantRepository) {
         this.applicantRepository = applicantRepository;
@@ -21,6 +26,7 @@ public class ApplicantService implements IApplicantService {
 
     @Override
     public Applicant create(Applicant applicant) {
+     applicant.setPassword(bCryptPasswordEncoder.encode(applicant.getPassword()));
         return applicantRepository.save(applicant);
     }
 
@@ -50,5 +56,9 @@ public class ApplicantService implements IApplicantService {
     @Override
     public List<Applicant> getAll() {
         return applicantRepository.findAll();
+    }
+
+    public boolean validatePassword(String rawPassword, String encodedPassword) {
+        return bCryptPasswordEncoder.matches(rawPassword, encodedPassword);
     }
 }

@@ -84,6 +84,12 @@ public class ApplicantController {
     // Login endpoint: returns full applicant object
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Applicant loginRequest) {
+        if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
+            return new ResponseEntity<>("Email is required", HttpStatus.BAD_REQUEST);
+        }
+        if (loginRequest.getPassword() == null) {
+            return new ResponseEntity<>("Password is required", HttpStatus.BAD_REQUEST);
+        }
 
         Optional<Applicant> applicantOpt = applicantService.getAll().stream()
                 .filter(a -> a.getContact() != null
@@ -92,7 +98,8 @@ public class ApplicantController {
 
         if (applicantOpt.isPresent()) {
             Applicant applicant = applicantOpt.get();
-            if (loginRequest.getPassword().equals(applicant.getPassword())) {
+            // Use password encoder to validate
+            if (applicantService.validatePassword(loginRequest.getPassword(), applicant.getPassword())) {
                 // Return the full applicant object
                 return ResponseEntity.ok(applicant);
             } else {

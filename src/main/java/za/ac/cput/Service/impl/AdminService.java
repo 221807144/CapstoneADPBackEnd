@@ -1,6 +1,7 @@
 package za.ac.cput.Service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Admin;
@@ -18,6 +19,9 @@ import java.util.List;
 
 @Service
 public class AdminService implements IAdminService {
+
+    private BCryptPasswordEncoder bCryptPasswordEncoder =  new BCryptPasswordEncoder(12);
+
 
     private final AdminRepository adminRepository;
     private final ApplicantRepository applicantRepository;
@@ -55,6 +59,7 @@ public class AdminService implements IAdminService {
 
     @Override
     public Admin create(Admin admin) {
+        admin.setPassword(bCryptPasswordEncoder.encode(admin.getPassword()));
         return adminRepository.save(admin);
     }
 
@@ -206,4 +211,12 @@ public class AdminService implements IAdminService {
 
         return testAppointmentRepository.save(testAppointment);
     }
+
+    public boolean validatePassword(String rawPassword, String encodedPassword) {
+        return bCryptPasswordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+
+
+
 }

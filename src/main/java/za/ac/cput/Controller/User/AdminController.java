@@ -26,6 +26,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
+
     @Autowired
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
@@ -114,12 +115,14 @@ public class AdminController {
                         a.getContact().getEmail().equalsIgnoreCase(loginRequest.getContact().getEmail()))
                 .findFirst()
                 .map(admin -> {
-                    if (loginRequest.getPassword().equals(admin.getPassword())) {
+                    // Use password encoder to validate
+                    if (adminService.validatePassword(loginRequest.getPassword(), admin.getPassword())) {
                         Map<String, Object> response = new HashMap<>();
                         response.put("message", "Login successful!");
                         response.put("userId", admin.getUserId());
                         response.put("firstName", admin.getFirstName());
                         response.put("lastName", admin.getLastName());
+                        response.put("role", admin.getRole());
                         return ResponseEntity.ok(response);
                     } else {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password.");
