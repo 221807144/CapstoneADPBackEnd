@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import za.ac.cput.Service.impl.LicenseService;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/license")
 public class LicenseController {
