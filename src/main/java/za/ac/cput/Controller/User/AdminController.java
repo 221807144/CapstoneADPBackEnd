@@ -100,7 +100,8 @@ public class AdminController {
         return ResponseEntity.ok(data);
     }
 
-    // Admin login
+
+// Admin login with attempt tracking
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Admin loginRequest) {
         if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
@@ -110,25 +111,33 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Password is required");
         }
 
-        return adminService.getAllAdmins().stream()
-                .filter(a -> a.getContact() != null &&
-                        a.getContact().getEmail().equalsIgnoreCase(loginRequest.getContact().getEmail()))
-                .findFirst()
-                .map(admin -> {
-                    // Use password encoder to validate
-                    if (adminService.validatePassword(loginRequest.getPassword(), admin.getPassword())) {
-                        Map<String, Object> response = new HashMap<>();
-                        response.put("message", "Login successful!");
-                        response.put("userId", admin.getUserId());
-                        response.put("firstName", admin.getFirstName());
-                        response.put("lastName", admin.getLastName());
-                        response.put("role", admin.getRole());
-                        return ResponseEntity.ok(response);
-                    } else {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password.");
-                    }
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found."));
+        String email = loginRequest.getContact().getEmail();
+        AdminService.LoginResult result = adminService.validateLogin(email, loginRequest.getPassword());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", result.isSuccess());
+        response.put("message", result.getMessage());
+
+        if (result.isSuccess()) {
+            response.put("admin", result.getAdmin());
+            // Include admin details in response
+            Map<String, Object> adminInfo = new HashMap<>();
+            adminInfo.put("userId", result.getAdmin().getUserId());
+            adminInfo.put("firstName", result.getAdmin().getFirstName());
+            adminInfo.put("lastName", result.getAdmin().getLastName());
+            adminInfo.put("role", result.getAdmin().getRole());
+            response.put("adminInfo", adminInfo);
+            return ResponseEntity.ok(response);
+        } else {
+            // Add attempt tracking information
+            if (result.getRemainingLockTime() > 0) {
+                response.put("locked", true);
+                response.put("remainingLockTime", result.getRemainingLockTime());
+            } else {
+                response.put("remainingAttempts", result.getRemainingAttempts());
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
     }
 
     @PutMapping("/update-status/{id}")

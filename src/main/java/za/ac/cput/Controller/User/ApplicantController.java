@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Service.impl.ApplicantService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:3000") // allow frontend calls
@@ -82,6 +84,7 @@ public class ApplicantController {
     }
 
     // Login endpoint: returns full applicant object
+// Login endpoint with attempt tracking
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Applicant loginRequest) {
         if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
@@ -91,22 +94,25 @@ public class ApplicantController {
             return new ResponseEntity<>("Password is required", HttpStatus.BAD_REQUEST);
         }
 
-        Optional<Applicant> applicantOpt = applicantService.getAll().stream()
-                .filter(a -> a.getContact() != null
-                        && a.getContact().getEmail().equalsIgnoreCase(loginRequest.getContact().getEmail()))
-                .findFirst();
+        String email = loginRequest.getContact().getEmail();
+        ApplicantService.LoginResult result = applicantService.validateLogin(email, loginRequest.getPassword());
 
-        if (applicantOpt.isPresent()) {
-            Applicant applicant = applicantOpt.get();
-            // Use password encoder to validate
-            if (applicantService.validatePassword(loginRequest.getPassword(), applicant.getPassword())) {
-                // Return the full applicant object
-                return ResponseEntity.ok(applicant);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password.");
-            }
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", result.isSuccess());
+        response.put("message", result.getMessage());
+
+        if (result.isSuccess()) {
+            response.put("applicant", result.getApplicant());
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Applicant not found.");
+            // Add attempt tracking information
+            if (result.getRemainingLockTime() > 0) {
+                response.put("locked", true);
+                response.put("remainingLockTime", result.getRemainingLockTime());
+            } else {
+                response.put("remainingAttempts", result.getRemainingAttempts());
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 

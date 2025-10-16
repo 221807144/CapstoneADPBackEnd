@@ -16,6 +16,7 @@ import za.ac.cput.Repository.*;
 import za.ac.cput.Service.IAdminService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService implements IAdminService {
@@ -33,6 +34,8 @@ public class AdminService implements IAdminService {
 
     private final TicketRepository ticketRepository;
     private final VehicleRepository vehicleRepository;
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     @Autowired
     public AdminService(
@@ -215,7 +218,81 @@ public class AdminService implements IAdminService {
     public boolean validatePassword(String rawPassword, String encodedPassword) {
         return bCryptPasswordEncoder.matches(rawPassword, encodedPassword);
     }
+    // Add this method to AdminService
+    public LoginResult validateLogin(String email, String rawPassword) {
+        // Check if account is blocked
+        if (loginAttemptService.isBlocked(email)) {
+            long remainingTime = loginAttemptService.getRemainingLockTime(email);
+            return new LoginResult(false,
+                    "Account temporarily locked. Please try again in " + remainingTime + " seconds.",
+                    null, remainingTime);
+        }
 
+        // Find admin by email
+        Optional<Admin> adminOpt = getAllAdmins().stream()
+                .filter(a -> a.getContact() != null &&
+                        a.getContact().getEmail().equalsIgnoreCase(email))
+                .findFirst();
+
+        if (adminOpt.isPresent()) {
+            Admin admin = adminOpt.get();
+
+            // Validate password
+            if (bCryptPasswordEncoder.matches(rawPassword, admin.getPassword())) {
+                // Successful login - reset attempts
+                loginAttemptService.loginSucceeded(email);
+                return new LoginResult(true, "Login successful", admin, 0);
+            } else {
+                // Failed login - record attempt
+                loginAttemptService.loginFailed(email);
+                int remainingAttempts = loginAttemptService.getRemainingAttempts(email);
+
+                // Check if account is now locked
+                if (loginAttemptService.isBlocked(email)) {
+                    long remainingTime = loginAttemptService.getRemainingLockTime(email);
+                    return new LoginResult(false,
+                            "Account locked due to too many failed attempts. Please try again in " + remainingTime + " seconds.",
+                            null, remainingTime);
+                } else {
+                    return new LoginResult(false,
+                            "Incorrect password. " + remainingAttempts + " attempts remaining.",
+                            null, remainingAttempts);
+                }
+            }
+        } else {
+            return new LoginResult(false, "Admin not found.", null, 0);
+        }
+    }
+
+    // Login Result inner class for Admin
+    public static class LoginResult {
+        private boolean success;
+        private String message;
+        private Admin admin;
+        private long remainingLockTime;
+        private int remainingAttempts;
+
+        public LoginResult(boolean success, String message, Admin admin, long remainingLockTime) {
+            this.success = success;
+            this.message = message;
+            this.admin = admin;
+            this.remainingLockTime = remainingLockTime;
+        }
+
+        public LoginResult(boolean success, String message, Admin admin, int remainingAttempts) {
+            this.success = success;
+            this.message = message;
+            this.admin = admin;
+            this.remainingAttempts = remainingAttempts;
+        }
+
+        // Getters
+        public boolean isSuccess() { return success; }
+        public String getMessage() { return message; }
+        public Admin getAdmin() { return admin; }
+        public long getRemainingLockTime() { return remainingLockTime; }
+        public int getRemainingAttempts() { return remainingAttempts; }
+    }
 
 
 
