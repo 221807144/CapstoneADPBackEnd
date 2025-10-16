@@ -84,7 +84,7 @@ public class ApplicantController {
     }
 
     // Login endpoint: returns full applicant object
-// Login endpoint with attempt tracking
+// Login endpoint with attempt tracking but same successful response format
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Applicant loginRequest) {
         if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
@@ -97,15 +97,15 @@ public class ApplicantController {
         String email = loginRequest.getContact().getEmail();
         ApplicantService.LoginResult result = applicantService.validateLogin(email, loginRequest.getPassword());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", result.isSuccess());
-        response.put("message", result.getMessage());
-
         if (result.isSuccess()) {
-            response.put("applicant", result.getApplicant());
-            return ResponseEntity.ok(response);
+            // Return the same format as before - just the applicant object directly
+            return ResponseEntity.ok(result.getApplicant());
         } else {
-            // Add attempt tracking information
+            // For failed logins, return the attempt tracking information
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", result.getMessage());
+
             if (result.getRemainingLockTime() > 0) {
                 response.put("locked", true);
                 response.put("remainingLockTime", result.getRemainingLockTime());
@@ -115,5 +115,4 @@ public class ApplicantController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
-
 }

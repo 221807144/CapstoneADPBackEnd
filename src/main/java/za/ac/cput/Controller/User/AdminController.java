@@ -101,7 +101,7 @@ public class AdminController {
     }
 
 
-// Admin login with attempt tracking
+    // Admin login with attempt tracking but same successful response format
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Admin loginRequest) {
         if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
@@ -114,22 +114,22 @@ public class AdminController {
         String email = loginRequest.getContact().getEmail();
         AdminService.LoginResult result = adminService.validateLogin(email, loginRequest.getPassword());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", result.isSuccess());
-        response.put("message", result.getMessage());
-
         if (result.isSuccess()) {
-            response.put("admin", result.getAdmin());
-            // Include admin details in response
-            Map<String, Object> adminInfo = new HashMap<>();
-            adminInfo.put("userId", result.getAdmin().getUserId());
-            adminInfo.put("firstName", result.getAdmin().getFirstName());
-            adminInfo.put("lastName", result.getAdmin().getLastName());
-            adminInfo.put("role", result.getAdmin().getRole());
-            response.put("adminInfo", adminInfo);
+            // Return the same format as before - the success response with user details
+            Admin admin = result.getAdmin();
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Login successful!");
+            response.put("userId", admin.getUserId());
+            response.put("firstName", admin.getFirstName());
+            response.put("lastName", admin.getLastName());
+            response.put("role", admin.getRole());
             return ResponseEntity.ok(response);
         } else {
-            // Add attempt tracking information
+            // For failed logins, return the attempt tracking information
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", result.getMessage());
+
             if (result.getRemainingLockTime() > 0) {
                 response.put("locked", true);
                 response.put("remainingLockTime", result.getRemainingLockTime());
@@ -139,7 +139,6 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
-
     @PutMapping("/update-status/{id}")
     public ResponseEntity<?> updateApplicantStatus(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
         String statusStr = payload.get("status");
