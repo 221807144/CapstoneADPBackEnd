@@ -139,4 +139,5 @@ private BCryptPasswordEncoder bCryptPasswordEncoder =  new BCryptPasswordEncoder
         public long getRemainingLockTime() { return remainingLockTime; }
         public int getRemainingAttempts() { return remainingAttempts; }
     }
+
 }
