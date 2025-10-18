@@ -3,17 +3,15 @@ package za.ac.cput.Controller.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import za.ac.cput.Domain.Registrations.Registration;
-import za.ac.cput.Domain.Registrations.Vehicle;
 import za.ac.cput.Domain.User.Admin;
 import za.ac.cput.Domain.User.Applicant;
-import za.ac.cput.Domain.bookings.Bookings;
 import za.ac.cput.Domain.bookings.TestAppointment;
-import za.ac.cput.Domain.bookings.VehicleDisc;
-import za.ac.cput.Domain.payment.Payment;
-import za.ac.cput.Domain.payment.Ticket;
 import za.ac.cput.Service.impl.AdminService;
+import za.ac.cput.Service.jwt.TokenUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,240 +24,311 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @Autowired
+    private TokenUtil tokenUtil;
 
     @Autowired
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
     }
 
-    // Create Admin   made changes to create
-//    @PostMapping("/create")
-//    public ResponseEntity<Admin> create(@RequestBody Admin admin) {
-//        return ResponseEntity.ok(adminService.create(admin));
-//    }
+    // ✅ GET login page endpoint (public)
+    @GetMapping("/login")
+    public ResponseEntity<?> loginPage() {
+        System.out.println("🔍 ADMIN LOGIN PAGE: Login page accessed");
+        return ResponseEntity.ok(Map.of(
+                "message", "Admin login page - use POST /admins/login with email and password to authenticate",
+                "required_fields", "email, password",
+                "email_domain", "@admin.co.za",
+                "example", Map.of("email", "admin@admin.co.za", "password", "yourpassword")
+        ));
+    }
 
-    // Create Admin with strict email validation
+    // Create a new admin (public - no token required)
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody Admin admin) {
-        // Validate admin email - MUST end with @admin.co.za
         if (admin.getContact() == null || admin.getContact().getEmail() == null) {
-            return ResponseEntity.badRequest().body("Email is required for admin registration");
+            return new ResponseEntity<>("Email is required", HttpStatus.BAD_REQUEST);
         }
 
         String email = admin.getContact().getEmail();
 
-        // Strict validation: admin emails must end with @admin.co.za
+        // Admins must use admin email domain
         if (!email.endsWith("@admin.co.za")) {
-            return ResponseEntity.badRequest()
-                    .body("Admin registration requires an email ending with @admin.co.za");
+            return new ResponseEntity<>("Admins must use @admin.co.za email domain", HttpStatus.BAD_REQUEST);
         }
 
         Admin created = adminService.create(admin);
-        return ResponseEntity.ok(created);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    // Read Admin by ID
+    // Read an admin by ID (protected - ADMIN only)
     @GetMapping("/read/{id}")
-    public ResponseEntity<Admin> read(@PathVariable Integer id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> read(@PathVariable Integer id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("👤 Admin accessing data: " + auth.getName());
+
         Admin admin = adminService.read(id);
-        if (admin == null)
-            return ResponseEntity.notFound().build();
+        if (admin == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return ResponseEntity.ok(admin);
     }
 
-    // Update Admin
+    // Update an admin (protected - ADMIN only)
     @PutMapping("/update")
-    public ResponseEntity<Admin> update(@RequestBody Admin admin) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> update(@RequestBody Admin admin) {
         Admin updated = adminService.update(admin);
-        if (updated == null)
-            return ResponseEntity.notFound().build();
+        if (updated == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return ResponseEntity.ok(updated);
     }
 
-    // Delete Admin
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        if (!adminService.deleteAdmin(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+    // Get all admins (protected - ADMIN only)
+    @GetMapping("/getAll")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAll() {
+        List<Admin> admins = adminService.getAllAdmins();
+        return ResponseEntity.ok(admins);
     }
 
-    // Get all data for dashboard
-    @GetMapping("/all-data")
-    public ResponseEntity<Map<String, Object>> getAllData() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("admins", adminService.getAllAdmins());
-        data.put("applicants", adminService.getAllApplicants());
-        data.put("bookings", adminService.getBookings());
-        data.put("payments", adminService.getPayments());
-        data.put("registrations", adminService.getRegistration());
-        data.put("testAppointments", adminService.getTestAppointments());
-        data.put("vehicleDiscs", adminService.getVehicleDiscs());
-        data.put("vehicles", adminService.getVehicles());
-        data.put("tickets", adminService.getTickets());
-        return ResponseEntity.ok(data);
-    }
-
-
-    // Admin login with attempt tracking but same successful response format
+    // Login endpoint (public - no token required)
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Admin loginRequest) {
-        if (loginRequest.getContact() == null || loginRequest.getContact().getEmail() == null) {
-            return ResponseEntity.badRequest().body("Email is required");
-        }
-        if (loginRequest.getPassword() == null) {
-            return ResponseEntity.badRequest().body("Password is required");
-        }
+    public ResponseEntity<?> login(@RequestBody Map<String, Object> loginRequest) {
+        try {
+            System.out.println("🔍 ADMIN LOGIN ATTEMPT: " + loginRequest);
 
-        String email = loginRequest.getContact().getEmail();
-        AdminService.LoginResult result = adminService.validateLogin(email, loginRequest.getPassword());
+            // Extract email and password from the request
+            String email = null;
+            String password = null;
 
-        if (result.isSuccess()) {
-            // Return the same format as before - the success response with user details
-            Admin admin = result.getAdmin();
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful!");
-            response.put("userId", admin.getUserId());
-            response.put("firstName", admin.getFirstName());
-            response.put("lastName", admin.getLastName());
-            response.put("role", admin.getRole());
-            return ResponseEntity.ok(response);
-        } else {
-            // For failed logins, return the attempt tracking information
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", result.getMessage());
-
-            if (result.getRemainingLockTime() > 0) {
-                response.put("locked", true);
-                response.put("remainingLockTime", result.getRemainingLockTime());
-            } else {
-                response.put("remainingAttempts", result.getRemainingAttempts());
+            if (loginRequest.get("contact") instanceof Map) {
+                Map<?, ?> contact = (Map<?, ?>) loginRequest.get("contact");
+                email = (String) contact.get("email");
+            } else if (loginRequest.get("email") != null) {
+                email = (String) loginRequest.get("email");
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
+            password = (String) loginRequest.get("password");
+
+            if (email == null || password == null) {
+                System.out.println("❌ ADMIN LOGIN: Missing email or password");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                                "success", false,
+                                "message", "Email and password are required",
+                                "status", "error"
+                        ));
+            }
+
+            System.out.println("🔐 ADMIN LOGIN: Validating credentials for: " + email);
+
+            AdminService.LoginResult result = adminService.validateLogin(email, password);
+
+            if (result.isSuccess()) {
+                Admin admin = result.getAdmin();
+
+                // Generate token using TokenUtil
+                String token = tokenUtil.generateToken(
+                        admin.getContact().getEmail(),
+                        "ROLE_ADMIN",
+                        admin.getUserId(),
+                        "ADMIN"
+                );
+
+                // Create response with token and user data
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("token", token);
+                response.put("user", admin);
+                response.put("role", "ROLE_ADMIN");
+                response.put("message", "Login successful");
+                response.put("status", "success");
+
+                System.out.println("✅ ADMIN LOGIN SUCCESS: Token generated for: " + admin.getContact().getEmail());
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", result.getMessage());
+                response.put("status", "error");
+
+                if (result.getRemainingLockTime() > 0) {
+                    response.put("locked", true);
+                    response.put("remainingLockTime", result.getRemainingLockTime());
+                } else {
+                    response.put("remainingAttempts", result.getRemainingAttempts());
+                }
+
+                System.out.println("❌ ADMIN LOGIN FAILED: " + response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+        } catch (Exception e) {
+            System.out.println("💥 ADMIN LOGIN ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Login failed: " + e.getMessage(),
+                            "status", "error"
+                    ));
         }
     }
-    @PutMapping("/update-status/{id}")
-    public ResponseEntity<?> updateApplicantStatus(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
-        String statusStr = payload.get("status");
-        String reason = payload.get("reason");
 
-        if (statusStr == null) return ResponseEntity.badRequest().body("Status is required");
+    // Admin dashboard data (protected - ADMIN only)
+    @GetMapping("/all-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllData() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("📊 Admin dashboard accessed by: " + auth.getName());
+
+        Map<String, Object> allData = new HashMap<>();
+        allData.put("applicants", adminService.getAllApplicants());
+        allData.put("admins", adminService.getAllAdmins());
+        allData.put("bookings", adminService.getBookings());
+        allData.put("payments", adminService.getPayments());
+        allData.put("registrations", adminService.getRegistration());
+        allData.put("testAppointments", adminService.getTestAppointments());
+        allData.put("vehicleDiscs", adminService.getVehicleDiscs());
+        allData.put("vehicles", adminService.getVehicles());
+        allData.put("tickets", adminService.getTickets());
+
+        return ResponseEntity.ok(allData);
+    }
+
+    // Update applicant status (protected - ADMIN only)
+    @PutMapping("/update-status/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateApplicantStatus(@PathVariable Integer id,
+                                                   @RequestBody Map<String, String> request) {
+        String status = request.get("status");
+        String reason = request.get("reason");
+
+        if (status == null) {
+            return new ResponseEntity<>("Status is required", HttpStatus.BAD_REQUEST);
+        }
 
         try {
-            Applicant updated = adminService.updateApplicantStatus(id, statusStr, reason);
-            if (updated == null) return ResponseEntity.notFound().build();
-            return ResponseEntity.ok(updated);
+            Applicant updated = adminService.updateApplicantStatus(id, status, reason);
+            if (updated != null) {
+                return ResponseEntity.ok(updated);
+            } else {
+                return new ResponseEntity<>("Applicant not found", HttpStatus.NOT_FOUND);
+            }
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    // Update Test Result
-    @PutMapping("/test-appointments/update-result/{id}")
-    public ResponseEntity<?> updateTestResult(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> payload) {
 
-        Boolean testResult = (Boolean) payload.get("testResult");
-        String notes = (String) payload.get("notes");
+    // Update test result (protected - ADMIN only)
+    @PutMapping("/test-appointments/update-result/{testAppointmentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateTestResult(@PathVariable Long testAppointmentId,
+                                              @RequestBody Map<String, Object> request) {
+        Boolean testResult = (Boolean) request.get("testResult");
+        String notes = (String) request.get("notes");
 
         if (testResult == null) {
-            return ResponseEntity.badRequest().body("Test result is required");
+            return new ResponseEntity<>("Test result is required", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            TestAppointment updated = adminService.updateTestResult(id, testResult, notes);
-            if (updated == null) {
-                return ResponseEntity.notFound().build();
-            }
+            TestAppointment updated = adminService.updateTestResult(testAppointmentId, testResult, notes);
             return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error updating test result: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    @GetMapping("/payments")
-    public ResponseEntity<List<Payment>> getAllPayments() {
-        List<Payment> payments = adminService.getPayments();
-        return ResponseEntity.ok(payments);
+    // Delete operations (protected - ADMIN only)
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAdmin(@PathVariable Integer id) {
+        boolean deleted = adminService.deleteAdmin(id);
+        if (deleted) {
+            return ResponseEntity.ok("Admin deleted successfully");
+        }
+        return new ResponseEntity<>("Admin not found", HttpStatus.NOT_FOUND);
     }
-
-    @GetMapping("/tickets")
-    public ResponseEntity<List<Ticket>> getAllTickets() {
-        List<Ticket> tickets = adminService.getTickets();
-        return ResponseEntity.ok(tickets);
-    }
-
-    @GetMapping("/vehicles")
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
-        List<Vehicle> vehicles = adminService.getVehicles();
-        return ResponseEntity.ok(vehicles);
-    }
-
-    @GetMapping("/vehicle-discs")
-    public ResponseEntity<List<VehicleDisc>> getAllVehicleDiscs() {
-        List<VehicleDisc> vehicleDiscs = adminService.getVehicleDiscs();
-        return ResponseEntity.ok(vehicleDiscs);
-    }
-
-    @GetMapping("/bookings")
-    public ResponseEntity<List<Bookings>> getAllBookings() {
-        List<Bookings> bookings = adminService.getBookings();
-        return ResponseEntity.ok(bookings);
-    }
-
-    @GetMapping("/registrations")
-    public ResponseEntity<List<Registration>> getAllRegistrations() {
-        List<Registration> registrations = adminService.getRegistration();
-        return ResponseEntity.ok(registrations);
-    }
-
-
 
     @DeleteMapping("/applicants/delete/{id}")
-    public ResponseEntity<Void> deleteApplicant(@PathVariable Integer id) {
-        if (!adminService.deleteApplicant(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteApplicant(@PathVariable Integer id) {
+        boolean deleted = adminService.deleteApplicant(id);
+        if (deleted) {
+            return ResponseEntity.ok("Applicant deleted successfully");
+        }
+        return new ResponseEntity<>("Applicant not found", HttpStatus.NOT_FOUND);
     }
 
+    // Check roles endpoint
+    @GetMapping("/check-roles")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> checkRoles() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-    @DeleteMapping("/bookings/delete/{id}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
-        if (!adminService.deleteBooking(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", auth.getName());
+        response.put("authorities", auth.getAuthorities().toString());
+        response.put("isAuthenticated", auth.isAuthenticated());
+        response.put("hasRoleApplicant", auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_APPLICANT")));
+        response.put("hasRoleAdmin", auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN")));
+
+        System.out.println("🔐 ADMIN ROLE CHECK: " + response);
+        return ResponseEntity.ok(response);
     }
 
-    // Delete Payment
-    @DeleteMapping("/payments/delete/{id}")
-    public ResponseEntity<Void> deletePayment(@PathVariable Integer id) {
-        if (!adminService.deletePayment(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+    // Validate token endpoint (public)
+    @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("valid", false, "message", "Authorization header missing or invalid"));
+            }
+
+            String token = authHeader.substring(7);
+            if (tokenUtil.validateToken(token)) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("valid", true);
+                response.put("username", tokenUtil.extractUsername(token));
+                response.put("role", tokenUtil.extractRole(token));
+                response.put("userId", tokenUtil.extractUserId(token));
+                response.put("userType", tokenUtil.extractUserType(token));
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("valid", false, "message", "Invalid token"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("valid", false, "message", "Error validating token: " + e.getMessage()));
+        }
     }
 
-    // Delete Test Appointment
-    @DeleteMapping("/test-appointments/delete/{id}")
-    public ResponseEntity<Void> deleteTestAppointment(@PathVariable Long id) {
-        if (!adminService.deleteTestAppointment(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
-    }
+    // Test Token endpoint (public)
+    @GetMapping("/test-token")
+    public ResponseEntity<?> testToken() {
+        try {
+            String testToken = tokenUtil.generateToken("test@admin.co.za", "ROLE_ADMIN", 999, "ADMIN");
 
-    // Delete Vehicle Disc
-    @DeleteMapping("/vehicle-discs/delete/{id}")
-    public ResponseEntity<Void> deleteVehicleDisc(@PathVariable Long id) {
-        if (!adminService.deleteVehicleDisc(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
-    }
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", testToken);
+            response.put("valid", tokenUtil.validateToken(testToken));
+            response.put("username", tokenUtil.extractUsername(testToken));
+            response.put("role", tokenUtil.extractRole(testToken));
+            response.put("userId", tokenUtil.extractUserId(testToken));
+            response.put("userType", tokenUtil.extractUserType(testToken));
 
-    // Delete Ticket
-    @DeleteMapping("/tickets/delete/{id}")
-    public ResponseEntity<Void> deleteTicket(@PathVariable Integer id) {
-        if (!adminService.deleteTicket(id))
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Token test failed: " + e.getMessage()));
+        }
     }
 }

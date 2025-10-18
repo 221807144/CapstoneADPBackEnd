@@ -1,6 +1,8 @@
 package za.ac.cput.Domain.User;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import za.ac.cput.Domain.bookings.Bookings;
 import za.ac.cput.Domain.contact.Address;
@@ -45,8 +47,25 @@ public class User {
     protected Role role;
 
     public enum Role {
-        ADMIN,
-        APPLICANT
+        ROLE_ADMIN,
+        ROLE_APPLICANT;
+
+        @JsonValue
+        public String toValue() {
+            return this.name();
+        }
+
+        @JsonCreator
+        public static Role fromValue(String value) {
+            if (value == null) {
+                return null;
+            }
+            try {
+                return Role.valueOf(value.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 
     public User() {
