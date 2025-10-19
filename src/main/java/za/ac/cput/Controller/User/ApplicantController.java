@@ -295,4 +295,98 @@ public class ApplicantController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    // Add these endpoints to ApplicantController class
+
+    // Verify applicant email for password reset
+    @PostMapping("/verify-email-password-reset")
+    public ResponseEntity<?> verifyEmailForPasswordReset(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Email is required"
+                ));
+            }
+
+            Map<String, Object> result = applicantService.verifyApplicantEmailForPasswordReset(email);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.out.println("💥 APPLICANT CONTROLLER ERROR: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Error verifying email: " + e.getMessage()
+            ));
+        }
+    }
+
+    // Reset applicant password
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String newPassword = request.get("newPassword");
+
+            if (email == null || newPassword == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Email and new password are required"
+                ));
+            }
+
+            Map<String, Object> result = applicantService.resetApplicantPassword(email, newPassword);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.out.println("💥 APPLICANT CONTROLLER ERROR: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Error resetting password: " + e.getMessage()
+            ));
+        }
+    }
+
+    // Change password (requires current password - for logged-in users)
+    @PutMapping("/change-password")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ADMIN')")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> passwordRequest) {
+        try {
+            String currentPassword = passwordRequest.get("currentPassword");
+            String newPassword = passwordRequest.get("newPassword");
+
+            if (currentPassword == null || newPassword == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Current password and new password are required"
+                ));
+            }
+
+            // Get current user from security context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+
+            boolean passwordChanged = applicantService.changeApplicantPassword(email, currentPassword, newPassword);
+
+            if (passwordChanged) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Password changed successfully"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Current password is incorrect"
+                ));
+            }
+
+        } catch (Exception e) {
+            System.out.println("💥 APPLICANT CONTROLLER ERROR: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Error changing password: " + e.getMessage()
+            ));
+        }
+    }
 }

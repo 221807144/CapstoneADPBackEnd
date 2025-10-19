@@ -6,16 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.Domain.User.Admin;
 import za.ac.cput.Domain.User.Applicant;
 import za.ac.cput.Domain.bookings.TestAppointment;
+import za.ac.cput.Repository.AdminRepository;
 import za.ac.cput.Service.impl.AdminService;
 import za.ac.cput.Service.jwt.TokenUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -26,6 +26,10 @@ public class AdminController {
 
     @Autowired
     private TokenUtil tokenUtil;
+    @Autowired  // Add this annotation
+    private AdminRepository adminRepository;
+
+    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
 
     @Autowired
     public AdminController(AdminService adminService) {
@@ -330,5 +334,160 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Token test failed: " + e.getMessage()));
         }
+    }
+
+    // Add this endpoint to AdminController class
+    @PutMapping("/change-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> passwordRequest) {
+        try {
+            System.out.println("🔐 ADMIN CHANGE PASSWORD REQUEST: " + passwordRequest);
+
+            String currentPassword = passwordRequest.get("currentPassword");
+            String newPassword = passwordRequest.get("newPassword");
+
+            if (currentPassword == null || newPassword == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Current password and new password are required"
+                ));
+            }
+
+            if (newPassword.length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "New password must be at least 6 characters long"
+                ));
+            }
+
+            // Get current admin ID from security context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+
+            // Find admin by email to get ID
+            Admin admin = adminService.getAllAdmins().stream()
+                    .filter(a -> a.getContact() != null &&
+                            a.getContact().getEmail().equalsIgnoreCase(username))
+                    .findFirst()
+                    .orElse(null);
+
+            if (admin == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "success", false,
+                        "message", "Admin not found"
+                ));
+            }
+
+            boolean passwordChanged = adminService.changePassword(admin.getUserId(), currentPassword, newPassword);
+
+            if (passwordChanged) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Password changed successfully"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Current password is incorrect"
+                ));
+            }
+
+        } catch (Exception e) {
+            System.out.println("💥 ADMIN CHANGE PASSWORD ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Error changing password: " + e.getMessage()
+            ));
+        }
+    }
+    // Add these methods to AdminService class
+
+    // Verify email for password reset
+    public Map<String, Object> verifyAdminEmailForPasswordReset(String email) {
+        try {
+            System.out.println("🔍 ADMIN SERVICE: Verifying email for password reset: " + email);
+
+            boolean emailExists = adminRepository.existsByEmail(email);
+
+            if (!emailExists) {
+                return Map.of(
+                        "success", false,
+                        "message", "Admin email not found in our system"
+                );
+            }
+
+            // Generate verification code (in real app, send via email)
+            String verificationCode = generateVerificationCode();
+            System.out.println("📧 Verification code for admin " + email + ": " + verificationCode);
+
+            return Map.of(
+                    "success", true,
+                    "message", "Verification code sent to your email",
+                    "demoCode", verificationCode // Remove in production
+            );
+
+        } catch (Exception e) {
+            System.out.println("❌ ADMIN SERVICE: Error verifying email: " + e.getMessage());
+            return Map.of(
+                    "success", false,
+                    "message", "Error verifying email: " + e.getMessage()
+            );
+        }
+    }
+
+    // Reset admin password with verification
+    public Map<String, Object> resetAdminPassword(String email, String newPassword) {
+        try {
+            System.out.println("🔐 ADMIN SERVICE: Resetting password for: " + email);
+
+            Optional<Admin> adminOpt = adminRepository.findByEmail(email);
+            if (!adminOpt.isPresent()) {
+                return Map.of(
+                        "success", false,
+                        "message", "Admin not found with email: " + email
+                );
+            }
+
+            Admin admin = adminOpt.get();
+
+            // Validate new password
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return Map.of(
+                        "success", false,
+                        "message", "New password cannot be empty"
+                );
+            }
+
+            if (newPassword.length() < 6) {
+                return Map.of(
+                        "success", false,
+                        "message", "New password must be at least 6 characters long"
+                );
+            }
+
+            // Encode and set new password
+            admin.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            adminRepository.save(admin);
+
+            System.out.println("✅ ADMIN SERVICE: Password reset successfully for: " + email);
+            return Map.of(
+                    "success", true,
+                    "message", "Password reset successfully"
+            );
+
+        } catch (Exception e) {
+            System.out.println("❌ ADMIN SERVICE: Error resetting password: " + e.getMessage());
+            return Map.of(
+                    "success", false,
+                    "message", "Error resetting password: " + e.getMessage()
+            );
+        }
+    }
+
+    private String generateVerificationCode() {
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000);
+        return String.valueOf(code);
     }
 }

@@ -30,32 +30,46 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints - no authentication required
+                        // ✅ PUBLIC ENDPOINTS - NO AUTHENTICATION REQUIRED
                         .requestMatchers(
+                                // Applicant public endpoints
                                 "/capstone/applicants/create",
                                 "/capstone/applicants/login",
                                 "/capstone/applicants/test-public",
                                 "/capstone/applicants/test-token",
                                 "/capstone/applicants/validate-token",
+                                "/capstone/applicants/verify-email-password-reset",  // ✅ ADD THIS
+                                "/capstone/applicants/reset-password",               // ✅ ADD THIS
+
+                                // Admin public endpoints
                                 "/capstone/admins/create",
                                 "/capstone/admins/login",
                                 "/capstone/admins/test-token",
                                 "/capstone/admins/validate-token",
+                                "/capstone/admins/verify-email-password-reset",     // ✅ ADD THIS
+                                "/capstone/admins/reset-password",                   // ✅ ADD THIS
+
+                                // Without /capstone prefix
                                 "/applicants/create",
                                 "/applicants/login",
                                 "/applicants/test-public",
                                 "/applicants/test-token",
                                 "/applicants/validate-token",
+                                "/applicants/verify-email-password-reset",          // ✅ ADD THIS
+                                "/applicants/reset-password",                       // ✅ ADD THIS
+
                                 "/admins/create",
                                 "/admins/login",
                                 "/admins/test-token",
-                                "/admins/validate-token"
+                                "/admins/validate-token",
+                                "/admins/verify-email-password-reset",              // ✅ ADD THIS
+                                "/admins/reset-password"                            // ✅ ADD THIS
                         ).permitAll()
 
-                        // Applicant endpoints - require APPLICANT or ADMIN role
+                        // ✅ Applicant endpoints - require APPLICANT or ADMIN role (EXCLUDES PUBLIC ENDPOINTS ABOVE)
                         .requestMatchers("/capstone/applicants/**", "/applicants/**").hasAnyRole("APPLICANT", "ADMIN")
 
-                        // Admin endpoints - require ADMIN role only
+                        // ✅ Admin endpoints - require ADMIN role only (EXCLUDES PUBLIC ENDPOINTS ABOVE)
                         .requestMatchers("/capstone/admins/**", "/admins/**").hasRole("ADMIN")
 
                         // Any other request needs authentication

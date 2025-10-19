@@ -21,10 +21,10 @@ import java.util.Optional;
 @Service
 public class AdminService implements IAdminService {
 
-    private BCryptPasswordEncoder bCryptPasswordEncoder =  new BCryptPasswordEncoder(12);
+    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
 
-
-    private final AdminRepository adminRepository;
+    @Autowired  // Add this annotation
+    private AdminRepository adminRepository;
     private final ApplicantRepository applicantRepository;
     private final BookingsRepository bookingsRepository;
     private final PaymentRepository paymentRepository;
@@ -161,6 +161,7 @@ public class AdminService implements IAdminService {
     public List<VehicleDisc> getVehicleDiscs() {
         return vehicleDiscRepository.findAll();
     }
+
     @Override
     public List<Vehicle> getVehicles() {
         return vehicleRepository.findAll();
@@ -203,6 +204,7 @@ public class AdminService implements IAdminService {
             throw new IllegalArgumentException("Invalid status value. Use PENDING, ACCEPTED, or REJECTED.");
         }
     }
+
     @Override
     public TestAppointment updateTestResult(Long testAppointmentId, Boolean testResult, String notes) {
         // You need to inject TestAppointmentRepository in your AdminService
@@ -219,52 +221,63 @@ public class AdminService implements IAdminService {
         return bCryptPasswordEncoder.matches(rawPassword, encodedPassword);
     }
     // Add this method to AdminService
+
+    // Add this method to AdminService
     public LoginResult validateLogin(String email, String rawPassword) {
+        System.out.println("🔐 VALIDATING ADMIN LOGIN for: " + email);
+
         // Check if account is blocked
         if (loginAttemptService.isBlocked(email)) {
             long remainingTime = loginAttemptService.getRemainingLockTime(email);
-            return new LoginResult(false,
-                    "Account temporarily locked. Please try again in " + remainingTime + " seconds.",
-                    null, remainingTime);
+            String message = "Account temporarily locked. Please try again in " + remainingTime + " seconds.";
+            System.out.println("❌ ADMIN LOGIN BLOCKED: " + message);
+            return new LoginResult(false, message, null, remainingTime);
         }
 
         // Find admin by email
         Optional<Admin> adminOpt = getAllAdmins().stream()
                 .filter(a -> a.getContact() != null &&
+                        a.getContact().getEmail() != null &&
                         a.getContact().getEmail().equalsIgnoreCase(email))
                 .findFirst();
 
-        if (adminOpt.isPresent()) {
-            Admin admin = adminOpt.get();
+        if (!adminOpt.isPresent()) {
+            // Admin not found - count as failed attempt
+            loginAttemptService.loginFailed(email);
+            int remainingAttempts = loginAttemptService.getRemainingAttempts(email);
+            String message = "Invalid email or password. " + remainingAttempts + " attempts remaining.";
+            System.out.println("❌ ADMIN NOT FOUND: " + message);
+            return new LoginResult(false, message, null, remainingAttempts);
+        }
 
-            // Validate password
-            if (bCryptPasswordEncoder.matches(rawPassword, admin.getPassword())) {
-                // Successful login - reset attempts
-                loginAttemptService.loginSucceeded(email);
-                return new LoginResult(true, "Login successful", admin, 0);
-            } else {
-                // Failed login - record attempt
-                loginAttemptService.loginFailed(email);
-                int remainingAttempts = loginAttemptService.getRemainingAttempts(email);
+        Admin admin = adminOpt.get();
 
-                // Check if account is now locked
-                if (loginAttemptService.isBlocked(email)) {
-                    long remainingTime = loginAttemptService.getRemainingLockTime(email);
-                    return new LoginResult(false,
-                            "Account locked due to too many failed attempts. Please try again in " + remainingTime + " seconds.",
-                            null, remainingTime);
-                } else {
-                    return new LoginResult(false,
-                            "Incorrect password. " + remainingAttempts + " attempts remaining.",
-                            null, remainingAttempts);
-                }
-            }
+        // Validate password
+        if (bCryptPasswordEncoder.matches(rawPassword, admin.getPassword())) {
+            // ✅ SUCCESS: Reset attempts
+            loginAttemptService.loginSucceeded(email);
+            System.out.println("✅ ADMIN LOGIN SUCCESS: " + email);
+            return new LoginResult(true, "Login successful", admin, 0);
         } else {
-            return new LoginResult(false, "Admin not found.", null, 0);
+            // ❌ FAILED: Record attempt
+            loginAttemptService.loginFailed(email);
+            int remainingAttempts = loginAttemptService.getRemainingAttempts(email);
+
+            // Check if account is now locked
+            if (loginAttemptService.isBlocked(email)) {
+                long remainingTime = loginAttemptService.getRemainingLockTime(email);
+                String message = "Account locked due to too many failed attempts. Please try again in " + remainingTime + " seconds.";
+                System.out.println("🔒 ADMIN ACCOUNT LOCKED: " + message);
+                return new LoginResult(false, message, null, remainingTime);
+            } else {
+                String message = "Incorrect password. " + remainingAttempts + " attempts remaining.";
+                System.out.println("❌ ADMIN INCORRECT PASSWORD: " + message);
+                return new LoginResult(false, message, null, remainingAttempts);
+            }
         }
     }
 
-    // Login Result inner class for Admin
+    // Add this inner class to AdminService
     public static class LoginResult {
         private boolean success;
         private String message;
@@ -277,12 +290,14 @@ public class AdminService implements IAdminService {
             this.message = message;
             this.admin = admin;
             this.remainingLockTime = remainingLockTime;
+            this.remainingAttempts = 0;
         }
 
         public LoginResult(boolean success, String message, Admin admin, int remainingAttempts) {
             this.success = success;
             this.message = message;
             this.admin = admin;
+            this.remainingLockTime = 0;
             this.remainingAttempts = remainingAttempts;
         }
 
@@ -294,6 +309,151 @@ public class AdminService implements IAdminService {
         public int getRemainingAttempts() { return remainingAttempts; }
     }
 
+    // Add this method to AdminService class
+    public boolean changePassword(Integer userId, String currentPassword, String newPassword) {
+        try {
+            System.out.println("🔐 ADMIN CHANGE PASSWORD: Attempting for user ID: " + userId);
 
+            Admin admin = adminRepository.findById(userId).orElse(null);
+            if (admin == null) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: Admin not found with ID: " + userId);
+                return false;
+            }
 
+            // Verify current password
+            if (!bCryptPasswordEncoder.matches(currentPassword, admin.getPassword())) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: Current password is incorrect");
+                return false;
+            }
+
+            // Validate new password
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: New password cannot be empty");
+                return false;
+            }
+
+            if (newPassword.length() < 6) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: New password must be at least 6 characters");
+                return false;
+            }
+
+            // Encode and set new password
+            admin.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            adminRepository.save(admin);
+
+            System.out.println("✅ ADMIN CHANGE PASSWORD: Password changed successfully for user ID: " + userId);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("💥 ADMIN CHANGE PASSWORD ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    // Add these methods to AdminService class
+
+    // Find admin by email using repository
+    public Optional<Admin> findAdminByEmail(String email) {
+        try {
+            System.out.println("🔍 ADMIN SERVICE: Finding admin by email: " + email);
+            return adminRepository.findByEmail(email);
+        } catch (Exception e) {
+            System.out.println("❌ ADMIN SERVICE: Error finding admin by email: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    // Check if admin email exists
+    public boolean adminEmailExists(String email) {
+        try {
+            System.out.println("🔍 ADMIN SERVICE: Checking if admin email exists: " + email);
+            return adminRepository.existsByEmail(email);
+        } catch (Exception e) {
+            System.out.println("❌ ADMIN SERVICE: Error checking admin email: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Change password method using repository
+    public boolean changeAdminPassword(String email, String currentPassword, String newPassword) {
+        try {
+            System.out.println("🔐 ADMIN CHANGE PASSWORD: Attempting for email: " + email);
+
+            Optional<Admin> adminOpt = adminRepository.findByEmail(email);
+            if (!adminOpt.isPresent()) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: Admin not found with email: " + email);
+                return false;
+            }
+
+            Admin admin = adminOpt.get();
+
+            // Verify current password
+            if (!bCryptPasswordEncoder.matches(currentPassword, admin.getPassword())) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: Current password is incorrect");
+                return false;
+            }
+
+            // Validate new password
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: New password cannot be empty");
+                return false;
+            }
+
+            if (newPassword.length() < 6) {
+                System.out.println("❌ ADMIN CHANGE PASSWORD: New password must be at least 6 characters");
+                return false;
+            }
+
+            // Encode and set new password
+            admin.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            adminRepository.save(admin);
+
+            System.out.println("✅ ADMIN CHANGE PASSWORD: Password changed successfully for email: " + email);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("💥 ADMIN CHANGE PASSWORD ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Change password without current password (for verified reset)
+    public boolean resetAdminPassword(String email, String newPassword) {
+        try {
+            System.out.println("🔐 ADMIN RESET PASSWORD: Attempting for email: " + email);
+
+            Optional<Admin> adminOpt = adminRepository.findByEmail(email);
+            if (!adminOpt.isPresent()) {
+                System.out.println("❌ ADMIN RESET PASSWORD: Admin not found with email: " + email);
+                return false;
+            }
+
+            Admin admin = adminOpt.get();
+
+            // Validate new password
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                System.out.println("❌ ADMIN RESET PASSWORD: New password cannot be empty");
+                return false;
+            }
+
+            if (newPassword.length() < 6) {
+                System.out.println("❌ ADMIN RESET PASSWORD: New password must be at least 6 characters");
+                return false;
+            }
+
+            // Encode and set new password
+            admin.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            adminRepository.save(admin);
+
+            System.out.println("✅ ADMIN RESET PASSWORD: Password reset successfully for email: " + email);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("💥 ADMIN RESET PASSWORD ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
+

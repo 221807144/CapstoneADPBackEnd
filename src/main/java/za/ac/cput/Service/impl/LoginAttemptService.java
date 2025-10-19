@@ -1,6 +1,5 @@
 package za.ac.cput.Service.impl;
 
-
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,15 +36,20 @@ public class LoginAttemptService {
 
     public void loginSucceeded(String email) {
         loginAttempts.remove(email); // Clear attempts on successful login
+        System.out.println("✅ LOGIN SUCCESS: Reset attempts for: " + email);
     }
 
     public void loginFailed(String email) {
         LoginAttempt attempt = loginAttempts.getOrDefault(email, new LoginAttempt());
-        attempt.setAttempts(attempt.getAttempts() + 1);
+        int currentAttempts = attempt.getAttempts() + 1;
+        attempt.setAttempts(currentAttempts);
         attempt.setLastAttempt(LocalDateTime.now());
 
-        if (attempt.getAttempts() >= MAX_ATTEMPTS) {
+        System.out.println("❌ LOGIN FAILED: Attempt " + currentAttempts + "/" + MAX_ATTEMPTS + " for: " + email);
+
+        if (currentAttempts >= MAX_ATTEMPTS) {
             attempt.setLockTime(LocalDateTime.now());
+            System.out.println("🔒 ACCOUNT LOCKED: " + email + " - Too many failed attempts");
         }
 
         loginAttempts.put(email, attempt);
@@ -60,9 +64,11 @@ public class LoginAttemptService {
         if (attempt.getLockTime() != null) {
             // Check if lock time has expired
             if (LocalDateTime.now().isBefore(attempt.getLockTime().plusMinutes(5))) {
+                System.out.println("🔒 ACCOUNT STILL LOCKED: " + email);
                 return true; // Still locked
             } else {
                 // Lock time expired, reset attempts
+                System.out.println("🔓 LOCK EXPIRED: Resetting attempts for: " + email);
                 loginAttempts.remove(email);
                 return false;
             }
@@ -79,14 +85,26 @@ public class LoginAttemptService {
 
         LocalDateTime unlockTime = attempt.getLockTime().plusMinutes(5);
         long remaining = java.time.Duration.between(LocalDateTime.now(), unlockTime).toSeconds();
+        System.out.println("⏰ REMAINING LOCK TIME for " + email + ": " + remaining + " seconds");
         return Math.max(0, remaining);
     }
 
     public int getRemainingAttempts(String email) {
         LoginAttempt attempt = loginAttempts.get(email);
         if (attempt == null) {
+            System.out.println("🎯 REMAINING ATTEMPTS for " + email + ": " + MAX_ATTEMPTS + " (first attempt)");
             return MAX_ATTEMPTS;
         }
-        return Math.max(0, MAX_ATTEMPTS - attempt.getAttempts());
+        int remaining = Math.max(0, MAX_ATTEMPTS - attempt.getAttempts());
+        System.out.println("🎯 REMAINING ATTEMPTS for " + email + ": " + remaining);
+        return remaining;
+    }
+
+    // Add this method for debugging
+    public void printAllAttempts() {
+        System.out.println("📊 CURRENT LOGIN ATTEMPTS CACHE:");
+        loginAttempts.forEach((email, attempt) -> {
+            System.out.println("   " + email + ": " + attempt.getAttempts() + " attempts, locked: " + (attempt.getLockTime() != null));
+        });
     }
 }

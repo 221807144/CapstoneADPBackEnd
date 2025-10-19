@@ -14,7 +14,6 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 @Entity
-//@JsonDeserialize(builder = TestAppointment.Builder.class) // <-- ADD THIS
 
 public class TestAppointment {
     @Id
@@ -36,14 +35,12 @@ public class TestAppointment {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")
     @JsonManagedReference(value = "appointment-test")
-//    @JsonIgnoreProperties({"vehicleDisc", "user"})
     private Payment payment;
 
     @ManyToOne
     @JoinColumn(name = "applicant_id")
     @JsonBackReference(value = "applicant-test")
 
-//    @JsonIgnoreProperties({"testAppointment", "vehicle", "contact", "address", "bookings"})
     private Applicant applicant;
 
     public TestAppointment() {
