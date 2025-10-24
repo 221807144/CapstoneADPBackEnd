@@ -17,21 +17,20 @@ import java.util.List;
 @DiscriminatorValue("APPLICANT")
 public class Applicant extends User {
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate birthDate;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "contact_id")
-    @JsonIgnoreProperties({"user"})
-    private Contact contact;
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+//    protected LocalDate birthDate;
+//
+//    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)    @JoinColumn(name = "contact_id")
+//    @JsonIgnoreProperties({"user"})
+//    protected  Contact contact;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "license_id")
-    private License license;
+    protected  License license;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "learners_id")
-    private Learners learners;
+    protected  Learners learners;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 //    @JsonIgnoreProperties({"applicant"})
@@ -82,13 +81,13 @@ public class Applicant extends User {
         return idNumber;
     }
 
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
+//    public LocalDate getBirthDate() {
+//        return birthDate;
+//    }
+//
+//    public Address getAddress() {
+//        return address;
+//    }
 
     public License getLicense() {
         return license;
@@ -234,22 +233,34 @@ public class Applicant extends User {
         }
 
         public Builder copy(Applicant applicant) {
-            this.userId = applicant.userId;
-            this.idNumber = applicant.idNumber;
-            this.birthDate = applicant.birthDate;
-            this.address = applicant.address;
-            this.license = applicant.license;
-            this.learners = applicant.learners;
-            this.firstName = applicant.firstName;
-            this.lastName = applicant.lastName;
-            this.contact = applicant.contact;
+            System.out.println("=== BUILDER COPY DEBUG ===");
+            System.out.println(" Original applicant details:");
+            System.out.println("  - Contact: " + applicant.getContact()); // Uses inherited getter
+            System.out.println("  - Contact ID: " + (applicant.getContact() != null ? applicant.getContact().getContactId() : "NULL"));
+
+            // Use getters to ensure we get the actual values
+            this.userId = applicant.getUserId();
+            this.idNumber = applicant.getIdNumber();
+            this.birthDate = applicant.getBirthDate();
+            this.address = applicant.getAddress();
+            this.license = applicant.getLicense();
+            this.learners = applicant.getLearners();
+            this.firstName = applicant.getFirstName();
+            this.lastName = applicant.getLastName();
+            this.contact = applicant.getContact();  // Uses inherited getter
             this.bookings = applicant.getBookings();
-            this.password = applicant.password;
-            this.role = applicant.role;
-            this.vehicle = applicant.vehicle;
-            this.testAppointment = applicant.testAppointment;
-            this.status = applicant.status;
-            this.reason = applicant.reason;
+            this.password = applicant.getPassword();
+            this.role = applicant.getRole();
+            this.vehicle = applicant.getVehicle();
+            this.testAppointment = applicant.getTestAppointment();
+            this.status = applicant.getStatus();
+            this.reason = applicant.getReason();
+
+            System.out.println(" Builder after copy:");
+            System.out.println("  - Contact: " + this.contact);
+            System.out.println("  - Contact ID: " + (this.contact != null ? this.contact.getContactId() : "NULL"));
+            System.out.println("=== ✅ COPY DEBUG END ===");
+
             return this;
         }
 

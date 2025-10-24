@@ -36,6 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/applicants/validate-token",
             "/applicants/test-token",
             "/applicants/test-public",
+
+            // ✅ ADD DOCUMENT ENDPOINTS HERE
+            "/applicant/documents/",  // ADD THIS
+            "/applicant/documents/",  // ADD THIS
+
             "/admins/create",
             "/admins/login",
             "/admins/verify-email-password-reset",      // ✅
@@ -50,6 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/capstone/applicants/validate-token",
             "/capstone/applicants/test-token",
             "/capstone/applicants/test-public",
+            // ✅ ADD DOCUMENT ENDPOINTS HERE
+            "/capstone/applicant/documents/",  // ADD THIS
+            "/capstone/applicant/documents/",  // ADD THIS
             "/capstone/admins/create",
             "/capstone/admins/login",
             "/capstone/admins/verify-email-password-reset",      // ✅

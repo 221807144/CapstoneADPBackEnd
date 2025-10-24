@@ -49,6 +49,10 @@ public class SecurityConfig {
                                 "/capstone/admins/verify-email-password-reset",     // ✅ ADD THIS
                                 "/capstone/admins/reset-password",                   // ✅ ADD THIS
 
+                                // ✅ ADD DOCUMENT ENDPOINTS HERE
+                                "/capstone/applicant/documents/**",
+                                "/applicant/documents/**",
+
                                 // Without /capstone prefix
                                 "/applicants/create",
                                 "/applicants/login",

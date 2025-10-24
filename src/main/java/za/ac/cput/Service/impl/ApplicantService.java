@@ -5,9 +5,14 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import za.ac.cput.Domain.User.Applicant;
+import za.ac.cput.Domain.User.Learners;
+import za.ac.cput.Domain.User.License;
 import za.ac.cput.Repository.ApplicantRepository;
+import za.ac.cput.Repository.LearnersRepository;
+import za.ac.cput.Repository.LicenseRepository;
 import za.ac.cput.Service.IApplicantService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,15 +21,24 @@ import java.util.Random;
 @Service
 public class ApplicantService implements IApplicantService {
 
-    private final ApplicantRepository applicantRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
-
     @Autowired
     private LoginAttemptService loginAttemptService;
 
+    //    private final ApplicantRepository applicantRepository;
+   private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
+
+
+    private final ApplicantRepository applicantRepository;
+    private final LicenseRepository licenseRepository; // Add this
+    private final LearnersRepository learnersRepository; // Add this
+
     @Autowired
-    public ApplicantService(ApplicantRepository applicantRepository) {
+    public ApplicantService(ApplicantRepository applicantRepository,
+                            LicenseRepository licenseRepository,
+                            LearnersRepository learnersRepository) {
         this.applicantRepository = applicantRepository;
+        this.licenseRepository = licenseRepository;
+        this.learnersRepository = learnersRepository;
     }
 
     @Override
@@ -55,7 +69,104 @@ public class ApplicantService implements IApplicantService {
         }
         return false;
     }
+    @Override
+    public Applicant saveOrUpdateDocuments(Integer applicantId, Map<String, Object> docData) {
+        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+        if (!applicantOpt.isPresent()) {
+            throw new RuntimeException("Applicant not found");
+        }
 
+        Applicant existingApplicant = applicantOpt.get();
+        System.out.println("🔍 DEEP DEBUG - Existing applicant:");
+        System.out.println("  - ID: " + existingApplicant.getUserId());
+        System.out.println("  - Contact Object: " + existingApplicant.getContact());
+        System.out.println("  - Contact ID: " + (existingApplicant.getContact() != null ? existingApplicant.getContact().getContactId() : "NULL"));
+        System.out.println("  - Contact Email: " + (existingApplicant.getContact() != null ? existingApplicant.getContact().getEmail() : "NULL"));
+        System.out.println("  - Birth Date: " + existingApplicant.getBirthDate());
+
+        // Test the Builder copy
+        Applicant testCopy = new Applicant.Builder().copy(existingApplicant).build();
+        System.out.println("🔍 DEEP DEBUG - After Builder copy:");
+        System.out.println("  - Contact Object: " + testCopy.getContact());
+        System.out.println("  - Contact ID: " + (testCopy.getContact() != null ? testCopy.getContact().getContactId() : "NULL"));
+        System.out.println("  - Birth Date: " + testCopy.getBirthDate());
+        String type = (String) docData.get("type");
+        String code = (String) docData.get("code");
+        LocalDate issueDate = LocalDate.parse((String) docData.get("issueDate"));
+        LocalDate expiryDate = LocalDate.parse((String) docData.get("expiryDate"));
+
+        if ("LICENSE".equalsIgnoreCase(type)) {
+            return updateOrCreateLicense(existingApplicant, code, issueDate, expiryDate);
+        } else if ("LEARNERS".equalsIgnoreCase(type)) {
+            return updateOrCreateLearners(existingApplicant, code, issueDate, expiryDate);
+        } else {
+            throw new RuntimeException("Unknown document type: " + type);
+        }
+    }
+
+    private Applicant updateOrCreateLicense(Applicant applicant, String code, LocalDate issueDate, LocalDate expiryDate) {
+        System.out.println("💾 Updating/Creating license for applicant: " + applicant.getUserId());
+
+        License license;
+        if (applicant.getLicense() != null) {
+            // Update existing license using Builder
+            license = new License.Builder()
+                    .setLicenseId(applicant.getLicense().getLicenseId())
+                    .setLicenseCode(code)
+                    .setIssueDate(issueDate)
+                    .setExpiryDate(expiryDate)
+                    .build();
+        } else {
+            // Create new license
+            license = new License.Builder()
+                    .setLicenseCode(code)
+                    .setIssueDate(issueDate)
+                    .setExpiryDate(expiryDate)
+                    .build();
+        }
+
+        License savedLicense = licenseRepository.save(license);
+
+        // Update applicant using Builder
+        Applicant updatedApplicant = new Applicant.Builder()
+                .copy(applicant)
+                .setLicense(savedLicense)
+                .build();
+
+        return applicantRepository.save(updatedApplicant);
+    }
+
+    private Applicant updateOrCreateLearners(Applicant applicant, String code, LocalDate issueDate, LocalDate expiryDate) {
+        System.out.println("💾 Updating/Creating learners for applicant: " + applicant.getUserId());
+
+        Learners learners;
+        if (applicant.getLearners() != null) {
+            // Update existing learners using Builder
+            learners = new Learners.Builder()
+                    .setLearnersId(applicant.getLearners().getLearnersId())
+                    .setLearnersCode(code)
+                    .setIssueDate(issueDate)
+                    .setExpiryDate(expiryDate)
+                    .build();
+        } else {
+            // Create new learners
+            learners = new Learners.Builder()
+                    .setLearnersCode(code)
+                    .setIssueDate(issueDate)
+                    .setExpiryDate(expiryDate)
+                    .build();
+        }
+
+        Learners savedLearners = learnersRepository.save(learners);
+
+        // Update applicant using Builder
+        Applicant updatedApplicant = new Applicant.Builder()
+                .copy(applicant)
+                .setLearners(savedLearners)
+                .build();
+
+        return applicantRepository.save(updatedApplicant);
+    }
     @Override
     public List<Applicant> getAll() {
         return applicantRepository.findAll();
@@ -297,4 +408,6 @@ public class ApplicantService implements IApplicantService {
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
+
+
 }

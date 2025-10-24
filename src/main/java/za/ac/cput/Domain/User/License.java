@@ -19,7 +19,6 @@ public class License {
     private LocalDate expiryDate;
 
 
-
     public License() {
     }
 
@@ -63,7 +62,7 @@ public class License {
     public static class Builder {
 
         private Long licenseId;
-        private String licenseCode;
+        private String licenseCode; ;
         private LocalDate issueDate;
         private LocalDate expiryDate;
 
@@ -71,7 +70,7 @@ public class License {
             this.licenseId = licenseId;
             return this;
         }
-        public Builder setlicenseCode(String licenseCode) {
+        public Builder setLicenseCode(String licenseCode) {
             this.licenseCode = licenseCode;
             return this;
         }

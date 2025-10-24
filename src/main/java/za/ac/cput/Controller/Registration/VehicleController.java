@@ -11,6 +11,8 @@ import za.ac.cput.Service.impl.VehicleService;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+
 @CrossOrigin(origins = "http://localhost:3000") // <-- allow React app
 @RestController
 @RequestMapping("/vehicle")
@@ -27,12 +29,27 @@ public class VehicleController {
     public ResponseEntity<?> createVehicle(@RequestBody Vehicle vehicle) {
         try {
             Vehicle saved = vehicleService.create(vehicle);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok(Map.of("success", true, "data", saved));
+
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            String dbMessage = ex.getMostSpecificCause().getMessage();
+            String message = "Duplicate entry detected";
+
+            // Check if the unique constraint on license plate caused the error
+            if (dbMessage != null && dbMessage.contains("UKj5v3su3bdx4bvsk1t9dga4bsq")) {
+                message = "License plate already exists. Please use a different license plate.";
+            }
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", message));
+
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error registering vehicle: " + e.getMessage()));
         }
     }
+
 
 //    public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
 //        Vehicle createdVehicle = vehicleService.create(vehicle);

@@ -16,7 +16,7 @@ public static License createLicense(String licenseCode, LocalDate issueDate, Loc
     }
 
     return new License.Builder()
-            .setlicenseCode(licenseCode)
+            .setLicenseCode(licenseCode)
             .setIssueDate(issueDate)
             .setExpiryDate(expiryDate)
             .build();

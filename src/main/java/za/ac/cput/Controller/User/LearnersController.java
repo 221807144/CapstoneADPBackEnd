@@ -6,7 +6,7 @@ import za.ac.cput.Domain.User.Learners;
 import za.ac.cput.Service.impl.LearnersService;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/learners")
 public class LearnersController {
